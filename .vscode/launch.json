@@ -7,8 +7,8 @@
         {
             "type": "msedge",
             "request": "launch",
-            "name": "Open 随机.html",
-            "file": "/workspaces/RandomSelection/随机/随机.html"
+            "name": "Open index.html",
+            "file": "/workspaces/RandomSelection/index.html"
         }
     ]
 }
