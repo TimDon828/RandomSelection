@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>随机抽取</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --danger: #dc2626;
+      --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .app {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 700;
+    }
+
+    .card-body {
+      padding: 16px;
+    }
+
+    .list-button {
+      width: 100%;
+      border: 0;
+      border-bottom: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      padding: 13px 16px;
+      text-align: left;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .list-button:hover {
+      background: #f9fafb;
+    }
+
+    .list-button.active {
+      background: #eff6ff;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .list-button:last-child {
+      border-bottom: 0;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    button.primary {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 15px;
+      cursor: pointer;
+      background: var(--primary);
+      color: white;
+    }
+
+    button.primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .content-title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .items {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: #fafafa;
+    }
+
+    .result {
+      margin-top: 16px;
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      background: #eff6ff;
+      padding: 16px;
+      min-height: 84px;
+    }
+
+    .result-label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .result-value {
+      font-size: 26px;
+      font-weight: 900;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .range-box {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    input[type="number"] {
+      width: 120px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 15px;
+      background: white;
+    }
+
+    .section-gap {
+      margin-top: 16px;
+    }
+
+    .small-title {
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .error {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    @media (max-width: 760px) {
+      .app {
+        padding: 14px;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .result-value {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>随机抽取</h1>
+
+    <section class="layout">
+      <aside class="card">
+        <div class="card-header">模式</div>
+        <div id="listNav"></div>
+      </aside>
+
+      <section class="card">
+        <div class="card-header" id="panelHeader">当前内容</div>
+        <div class="card-body" id="panelBody"></div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const DATA = [
+      {
+        type: "groups",
+        title: "分组抽取",
+        groups: {
+          "学习": [
+            "知识",
+            "技能"
+          ],
+          "娱乐": [
+            "玩游戏",
+            "看视频",
+            "读书"
+          ],
+          "创作": [
+            "写程序",
+            "剪视频",
+            "做音乐",
+            "画画"
+          ]
+        }
+      },
+      {
+        type: "list",
+        title: "普通抽取",
+        items: [
+          "是",
+          "否"
+        ]
+      },
+      {
+        type: "number",
+        title: "数字抽取",
+        min: 1,
+        max: 100
+      }
+    ];
+
+    let currentIndex = 0;
+
+    const listNav = document.getElementById("listNav");
+    const panelHeader = document.getElementById("panelHeader");
+    const panelBody = document.getElementById("panelBody");
+
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function pickOne(array) {
+      if (!Array.isArray(array) || array.length === 0) return null;
+      return array[randomInt(0, array.length - 1)];
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function renderNav() {
+      listNav.innerHTML = "";
+
+      DATA.forEach((entry, index) => {
+        const button = document.createElement("button");
+        button.className = "list-button" + (index === currentIndex ? " active" : "");
+        button.textContent = entry.title;
+        button.addEventListener("click", () => {
+          currentIndex = index;
+          render();
+        });
+        listNav.appendChild(button);
+      });
+    }
+
+    function renderResultBox(label = "抽取结果") {
+      return `
+        <div class="result">
+          <div class="result-label">${escapeHtml(label)}</div>
+          <div class="result-value" id="resultValue">尚未抽取</div>
+        </div>
+      `;
+    }
+
+    function setResult(value) {
+      const resultValue = document.getElementById("resultValue");
+      if (resultValue) resultValue.textContent = value;
+    }
+
+    function renderListPanel(entry) {
+      panelBody.innerHTML = `
+        <div class="toolbar">
+          <button class="primary" id="drawListBtn">开始抽取</button>
+        </div>
+        <div class="items">
+          ${entry.items.map(item => `<div class="item">${escapeHtml(item)}</div>`).join("")}
+        </div>
+        ${renderResultBox()}
+      `;
+
+      document.getElementById("drawListBtn").addEventListener("click", () => {
+        const item = pickOne(entry.items);
+        setResult(item ?? "当前列表为空");
+      });
+    }
+
+    function renderGroupsPanel(entry) {
+      const groupHtml = Object.entries(entry.groups)
+        .map(([groupName, items]) => `
+          <div class="section-gap">
+            <div class="small-title">${escapeHtml(groupName)} <span style="color: var(--muted); font-weight: 400;">(${items.length} 项)</span></div>
+            <div class="items">
+              ${items.map(item => `<div class="item">${escapeHtml(item)}</div>`).join("")}
+            </div>
+          </div>
+        `)
+        .join("");
+
+      panelBody.innerHTML = `
+        <div class="toolbar">
+          <button class="primary" id="drawGroupBtn">开始抽取</button>
+        </div>
+        ${groupHtml}
+        ${renderResultBox()}
+      `;
+
+      document.getElementById("drawGroupBtn").addEventListener("click", () => {
+        const validGroups = Object.entries(entry.groups)
+          .filter(([, items]) => Array.isArray(items) && items.length > 0);
+
+        if (validGroups.length === 0) {
+          setResult("没有可抽取的分组");
+          return;
+        }
+
+        const [groupName, items] = pickOne(validGroups);
+        const item = pickOne(items);
+        setResult(`${groupName} → ${item}`);
+      });
+    }
+
+    function renderNumberPanel(entry) {
+      panelBody.innerHTML = `
+        <div class="range-box">
+          <label>从 <input type="number" id="minNumber" value="${escapeHtml(entry.min)}" step="1" /></label>
+          <label>到 <input type="number" id="maxNumber" value="${escapeHtml(entry.max)}" step="1" /></label>
+          <button class="primary" id="drawNumberBtn">开始抽取</button>
+        </div>
+        ${renderResultBox("抽取结果")}
+      `;
+
+      document.getElementById("drawNumberBtn").addEventListener("click", () => {
+        const minInput = document.getElementById("minNumber");
+        const maxInput = document.getElementById("maxNumber");
+        let min = Number.parseInt(minInput.value, 10);
+        let max = Number.parseInt(maxInput.value, 10);
+
+        if (Number.isNaN(min) || Number.isNaN(max)) {
+          setResult("请输入有效整数");
+          return;
+        }
+
+        if (min > max) {
+          [min, max] = [max, min];
+        }
+
+        setResult(String(randomInt(min, max)));
+      });
+    }
+
+    function renderPanel() {
+      const entry = DATA[currentIndex];
+
+      if (!entry) {
+        panelHeader.textContent = "当前内容";
+        panelBody.innerHTML = '<div class="error">没有可用内容。</div>';
+        return;
+      }
+
+      panelHeader.textContent = entry.title;
+
+      if (entry.type === "list") {
+        renderListPanel(entry);
+        return;
+      }
+
+      if (entry.type === "groups") {
+        renderGroupsPanel(entry);
+        return;
+      }
+
+      if (entry.type === "number") {
+        renderNumberPanel(entry);
+        return;
+      }
+
+      panelBody.innerHTML = '<div class="error">格式不正确。</div>';
+    }
+
+    function render() {
+      renderNav();
+      renderPanel();
+    }
+
+    render();
+  </script>
+</body>
+</html>
