@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>随机抽取</title>
   <style>
+    /* 主题颜色与变量定义 */
     :root {
       --bg: #f6f7f9;
       --card: #ffffff;
@@ -17,10 +18,12 @@
       --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
     }
 
+    /* 全局盒模型设定，避免内边距与宽度冲突 */
     * {
       box-sizing: border-box;
     }
 
+    /* 页面基础样式 */
     body {
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
@@ -28,17 +31,20 @@
       color: var(--text);
     }
 
+    /* 主容器样式，限制最大宽度并居中显示 */
     .app {
       max-width: 1100px;
       margin: 0 auto;
       padding: 24px;
     }
 
+    /* 主标题样式 */
     h1 {
       margin: 0 0 8px;
       font-size: 28px;
     }
 
+    /* 页面布局：左侧模式列表，右侧内容面板 */
     .layout {
       display: grid;
       grid-template-columns: 280px 1fr;
@@ -46,6 +52,7 @@
       align-items: start;
     }
 
+    /* 通用卡片样式 */
     .card {
       background: var(--card);
       border: 1px solid var(--border);
@@ -54,16 +61,19 @@
       overflow: hidden;
     }
 
+    /* 卡片头部样式 */
     .card-header {
       padding: 14px 16px;
       border-bottom: 1px solid var(--border);
       font-weight: 700;
     }
 
+    /* 卡片内容区内边距 */
     .card-body {
       padding: 16px;
     }
 
+    /* 导航按钮样式 */
     .list-button {
       width: 100%;
       border: 0;
@@ -90,6 +100,7 @@
       border-bottom: 0;
     }
 
+    /* 工具栏按钮布局 */
     .toolbar {
       display: flex;
       gap: 10px;
@@ -97,6 +108,7 @@
       margin-bottom: 14px;
     }
 
+    /* 主要按钮样式 */
     button.primary {
       border: 0;
       border-radius: 10px;
@@ -111,18 +123,21 @@
       background: var(--primary-dark);
     }
 
+    /* 列表内容标题样式 */
     .content-title {
       font-size: 20px;
       font-weight: 800;
       margin-bottom: 10px;
     }
 
+    /* 列表项容器样式 */
     .items {
       display: grid;
       gap: 8px;
       margin-top: 12px;
     }
 
+    /* 单个列表项样式 */
     .item {
       border: 1px solid var(--border);
       border-radius: 10px;
@@ -130,8 +145,9 @@
       background: #fafafa;
     }
 
+    /* 抽取结果显示区 */
     .result {
-      margin-top: 16px;
+      margin-bottom: 16px;
       border: 1px solid #bfdbfe;
       border-radius: 12px;
       background: #eff6ff;
@@ -152,6 +168,7 @@
       word-break: break-word;
     }
 
+    /* 数字范围输入区布局 */
     .range-box {
       display: flex;
       gap: 10px;
@@ -168,20 +185,24 @@
       background: white;
     }
 
+    /* 分组展示块间距 */
     .section-gap {
       margin-top: 16px;
     }
 
+    /* 分组标题样式 */
     .small-title {
       font-weight: 800;
       margin-bottom: 10px;
     }
 
+    /* 错误提示样式 */
     .error {
       color: var(--danger);
       font-weight: 700;
     }
 
+    /* 响应式布局：窄屏时改为单列 */
     @media (max-width: 760px) {
       .app {
         padding: 14px;
@@ -202,11 +223,13 @@
     <h1>随机抽取</h1>
 
     <section class="layout">
+      <!-- 左侧导航：用于选择抽取模式 -->
       <aside class="card">
         <div class="card-header">模式</div>
         <div id="listNav"></div>
       </aside>
 
+      <!-- 右侧内容区域：根据当前模式动态渲染内容 -->
       <section class="card">
         <div class="card-header" id="panelHeader">当前内容</div>
         <div class="card-body" id="panelBody"></div>
@@ -215,31 +238,11 @@
   </main>
 
   <script>
+    // 页面显示的抽取模式数据集，包含三种演示模式
     const DATA = [
       {
-        type: "groups",
-        title: "分组抽取",
-        groups: {
-          "学习": [
-            "知识",
-            "技能"
-          ],
-          "娱乐": [
-            "玩游戏",
-            "看视频",
-            "读书"
-          ],
-          "创作": [
-            "写程序",
-            "剪视频",
-            "做音乐",
-            "画画"
-          ]
-        }
-      },
-      {
         type: "list",
-        title: "普通抽取",
+        title: "列表抽取",
         items: [
           "是",
           "否"
@@ -250,24 +253,95 @@
         title: "数字抽取",
         min: 1,
         max: 100
+      },
+      {
+        type: "groups",
+        title: "分组抽取",
+        groups: {
+          "学习": {
+            "知识":[
+              "数学",
+              "语文",
+              "英语",
+              "历史",
+              "地理",
+              "生物",
+              "化学",
+              "物理",
+              "政治"
+            ],
+            "技能":{
+              "编程":[
+                "Python",
+                "JavaScript",
+                "Java",
+                "C++"
+              ],
+              "写作":[],
+              "绘画":[]
+            }
+          },
+          "娱乐": {
+            "室内": [
+              "玩游戏",
+              "看视频",
+              "读书"
+            ],
+            "室外": [
+              "跑步",
+              "登山",
+              "骑车"
+            ]
+          },
+          "创作": {
+            "技术类": [
+              "写程序",
+              "搭建网站",
+              "写文档"
+            ],
+            "艺术类": [
+              "剪视频",
+              "做音乐",
+              "画画"
+            ]
+          }
+        }
       }
     ];
 
+    // 当前选中模式的索引，默认为第一个模式
     let currentIndex = 0;
 
+    // 缓存常用 DOM 元素引用，减少重复查询
     const listNav = document.getElementById("listNav");
     const panelHeader = document.getElementById("panelHeader");
     const panelBody = document.getElementById("panelBody");
 
+    /**
+     * 生成闭区间随机整数。
+     * @param {number} min 最小值
+     * @param {number} max 最大值
+     * @returns {number} 随机整数
+     */
     function randomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
+    /**
+     * 从数组中随机取一个元素。
+     * @param {Array} array 输入数组
+     * @returns {*} 随机元素或 null
+     */
     function pickOne(array) {
       if (!Array.isArray(array) || array.length === 0) return null;
       return array[randomInt(0, array.length - 1)];
     }
 
+    /**
+     * 对文本进行 HTML 转义，避免插入不安全内容。
+     * @param {*} value 任意值
+     * @returns {string} 转义后的字符串
+     */
     function escapeHtml(value) {
       return String(value)
         .replaceAll("&", "&amp;")
@@ -277,6 +351,61 @@
         .replaceAll("'", "&#039;");
     }
 
+    /**
+     * 递归渲染分组结构，支持多层嵌套。
+     * @param {string} groupName 分组名称
+     * @param {*} groupData 分组数据（数组或对象）
+     * @param {number} depth 当前深度
+     * @returns {string} HTML字符串
+     */
+    function renderGroup(groupName, groupData, depth = 0) {
+      if (Array.isArray(groupData)) {
+        // 渲染项目列表
+        return `
+          <div class="section-gap" style="margin-left: ${depth * 16}px;">
+            <div class="small-title">${escapeHtml(groupName)} <span style="color: var(--muted); font-weight: 400;">(${groupData.length} 项)</span></div>
+            <div class="items">
+              ${groupData.map(item => `<div class="item">${escapeHtml(item)}</div>`).join("")}
+            </div>
+          </div>
+        `;
+      } else if (typeof groupData === 'object' && groupData !== null) {
+        // 递归渲染子分组
+        const subHtml = Object.entries(groupData).map(([subName, subData]) => renderGroup(subName, subData, depth + 1)).join("");
+        return `
+          <div class="section-gap" style="margin-left: ${depth * 16}px;">
+            <div class="small-title">${escapeHtml(groupName)}</div>
+            ${subHtml}
+          </div>
+        `;
+      }
+      return '';
+    }
+
+    /**
+     * 从分组数据中随机选择一个项目，在同一级内等概率。
+     * @param {*} groupData 分组数据
+     * @returns {string} 选择结果或路径
+     */
+    function pickFromNestedGroup(groupData) {
+      if (Array.isArray(groupData)) {
+        // 直接从数组中选择
+        return pickOne(groupData);
+      } else if (typeof groupData === 'object' && groupData !== null) {
+        // 从对象的键中随机选择一个
+        const keys = Object.keys(groupData);
+        if (keys.length === 0) return null;
+        const selectedKey = pickOne(keys);
+        const selectedValue = groupData[selectedKey];
+        const childResult = pickFromNestedGroup(selectedValue);
+        return childResult ? `${selectedKey} → ${childResult}` : selectedKey;
+      }
+      return null;
+    }
+
+    /**
+     * 渲染左侧导航区域，每个按钮代表一种抽取模式。
+     */
     function renderNav() {
       listNav.innerHTML = "";
 
@@ -292,6 +421,11 @@
       });
     }
 
+    /**
+     * 返回一个固定样式的结果展示区 HTML 模板。
+     * @param {string} label 显示的标签文本
+     * @returns {string} HTML 字符串
+     */
     function renderResultBox(label = "抽取结果") {
       return `
         <div class="result">
@@ -301,20 +435,28 @@
       `;
     }
 
+    /**
+     * 更新结果显示区域的文本。
+     * @param {string} value 结果文本
+     */
     function setResult(value) {
       const resultValue = document.getElementById("resultValue");
       if (resultValue) resultValue.textContent = value;
     }
 
+    /**
+     * 渲染“列表抽取”模式的面板内容。
+     * @param {Object} entry 当前模式数据
+     */
     function renderListPanel(entry) {
       panelBody.innerHTML = `
+        ${renderResultBox()}
         <div class="toolbar">
           <button class="primary" id="drawListBtn">开始抽取</button>
         </div>
         <div class="items">
           ${entry.items.map(item => `<div class="item">${escapeHtml(item)}</div>`).join("")}
         </div>
-        ${renderResultBox()}
       `;
 
       document.getElementById("drawListBtn").addEventListener("click", () => {
@@ -323,49 +465,41 @@
       });
     }
 
+    /**
+     * 渲染“分组抽取”模式面板，并显示每个分组及其项目。
+     * @param {Object} entry 当前模式数据
+     */
     function renderGroupsPanel(entry) {
-      const groupHtml = Object.entries(entry.groups)
-        .map(([groupName, items]) => `
-          <div class="section-gap">
-            <div class="small-title">${escapeHtml(groupName)} <span style="color: var(--muted); font-weight: 400;">(${items.length} 项)</span></div>
-            <div class="items">
-              ${items.map(item => `<div class="item">${escapeHtml(item)}</div>`).join("")}
-            </div>
-          </div>
-        `)
-        .join("");
+      const groupHtml = Object.entries(entry.groups).map(([groupName, groupData]) => renderGroup(groupName, groupData)).join("");
 
       panelBody.innerHTML = `
+        ${renderResultBox()}
         <div class="toolbar">
           <button class="primary" id="drawGroupBtn">开始抽取</button>
         </div>
         ${groupHtml}
-        ${renderResultBox()}
       `;
 
       document.getElementById("drawGroupBtn").addEventListener("click", () => {
-        const validGroups = Object.entries(entry.groups)
-          .filter(([, items]) => Array.isArray(items) && items.length > 0);
-
-        if (validGroups.length === 0) {
-          setResult("没有可抽取的分组");
-          return;
-        }
-
-        const [groupName, items] = pickOne(validGroups);
-        const item = pickOne(items);
-        setResult(`${groupName} → ${item}`);
+        const result = pickFromNestedGroup(entry.groups);
+        setResult(result ?? "没有可抽取的内容");
       });
     }
 
+    /**
+     * 渲染“数字抽取”模式面板，支持自定义最小值和最大值。
+     * @param {Object} entry 当前模式数据
+     */
     function renderNumberPanel(entry) {
       panelBody.innerHTML = `
+        ${renderResultBox("抽取结果")}
+        <div class="toolbar">
+          <button class="primary" id="drawNumberBtn">开始抽取</button>
+        </div>
         <div class="range-box">
           <label>从 <input type="number" id="minNumber" value="${escapeHtml(entry.min)}" step="1" /></label>
           <label>到 <input type="number" id="maxNumber" value="${escapeHtml(entry.max)}" step="1" /></label>
-          <button class="primary" id="drawNumberBtn">开始抽取</button>
         </div>
-        ${renderResultBox("抽取结果")}
       `;
 
       document.getElementById("drawNumberBtn").addEventListener("click", () => {
@@ -387,6 +521,9 @@
       });
     }
 
+    /**
+     * 根据当前选中的模式渲染右侧面板内容。
+     */
     function renderPanel() {
       const entry = DATA[currentIndex];
 
@@ -416,11 +553,15 @@
       panelBody.innerHTML = '<div class="error">格式不正确。</div>';
     }
 
+    /**
+     * 重新渲染导航与当前内容面板。
+     */
     function render() {
       renderNav();
       renderPanel();
     }
 
+    // 页面初始化入口
     render();
   </script>
 </body>
