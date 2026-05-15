@@ -202,6 +202,65 @@
       font-weight: 700;
     }
 
+    /* 编辑模式下的列表项样式 */
+    .item.editable {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      background: white;
+      border-color: var(--primary);
+    }
+
+    .item.editable input {
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 14px;
+    }
+
+    .item.editable button {
+      border: 0;
+      background: none;
+      color: var(--danger);
+      cursor: pointer;
+      padding: 4px 8px;
+      font-size: 14px;
+    }
+
+    .item.editable button:hover {
+      background: rgba(220, 38, 38, 0.1);
+      border-radius: 4px;
+    }
+
+    .drag-handle {
+      cursor: grab;
+      color: var(--muted);
+      font-size: 18px;
+      padding: 4px 6px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+
+    .item.dragging {
+      opacity: 0.5;
+      background: #f0f0f0;
+    }
+
+    .item.drag-over {
+      border-top: 3px solid var(--primary);
+      padding-top: 7px;
+    }
+
+    button.primary:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+
     /* 响应式布局：窄屏时改为单列 */
     @media (max-width: 760px) {
       .app {
@@ -239,7 +298,7 @@
 
   <script>
     // 页面显示的抽取模式数据集，包含三种演示模式
-    const DATA = [
+    let DATA = [
       {
         type: "list",
         title: "列表抽取",
@@ -311,11 +370,47 @@
 
     // 当前选中模式的索引，默认为第一个模式
     let currentIndex = 0;
+    
+    // 编辑模式状态
+    let isEditingMode = false;
+    let editingBackup = null;
+    let draggedItem = null;
 
     // 缓存常用 DOM 元素引用，减少重复查询
     const listNav = document.getElementById("listNav");
     const panelHeader = document.getElementById("panelHeader");
     const panelBody = document.getElementById("panelBody");
+
+    /**
+     * 从 localStorage 读取并应用保存的数据
+     */
+    function loadFromStorage() {
+      const saved = localStorage.getItem("randomSelectionData");
+      if (saved) {
+        try {
+          const parsedData = JSON.parse(saved);
+          // 只更新列表类型的数据
+          for (let i = 0; i < DATA.length; i++) {
+            if (DATA[i].type === "list" && parsedData[i]) {
+              DATA[i].items = parsedData[i].items || DATA[i].items;
+            }
+          }
+        } catch (e) {
+          console.error("读取本地数据失败:", e);
+        }
+      }
+    }
+
+    /**
+     * 保存当前数据到 localStorage
+     */
+    function saveToStorage() {
+      try {
+        localStorage.setItem("randomSelectionData", JSON.stringify(DATA));
+      } catch (e) {
+        console.error("保存数据失败:", e);
+      }
+    }
 
     /**
      * 生成闭区间随机整数。
@@ -414,6 +509,7 @@
         button.className = "list-button" + (index === currentIndex ? " active" : "");
         button.textContent = entry.title;
         button.addEventListener("click", () => {
+          if (isEditingMode) return; // 编辑模式下不允许切换
           currentIndex = index;
           render();
         });
@@ -445,24 +541,220 @@
     }
 
     /**
+     * 设置拖动功能
+     */
+    function setupDragAndDrop() {
+      const itemsContainer = document.querySelector(".items");
+      if (!itemsContainer) return;
+      
+      const items = itemsContainer.querySelectorAll(".item.editable");
+      let draggingItem = null;
+      let draggingItemIndex = -1;
+
+      items.forEach((item, index) => {
+        item.dataset.index = index;
+        const dragHandle = item.querySelector(".drag-handle");
+
+        dragHandle.addEventListener("mousedown", (e) => {
+          e.preventDefault();
+          draggingItem = item;
+          draggingItemIndex = index;
+          item.classList.add("dragging");
+
+          function onMouseMove(moveEvent) {
+            if (!draggingItem) return;
+
+            const container = document.querySelector(".items");
+            if (!container) return;
+            
+            const allItems = Array.from(container.querySelectorAll(".item.editable"));
+            
+            allItems.forEach((otherItem, idx) => {
+              if (otherItem === draggingItem) return;
+              
+              const otherRect = otherItem.getBoundingClientRect();
+              const midpoint = otherRect.top + otherRect.height / 2;
+              
+              // 根据鼠标位置显示插入位置提示
+              if (moveEvent.clientY < midpoint) {
+                otherItem.classList.add("drag-over");
+              } else {
+                otherItem.classList.remove("drag-over");
+              }
+            });
+          }
+
+          function onMouseUp(upEvent) {
+            if (!draggingItem || draggingItemIndex === -1) return;
+
+            const container = document.querySelector(".items");
+            if (!container) {
+              draggingItem.classList.remove("dragging");
+              draggingItem = null;
+              document.removeEventListener("mousemove", onMouseMove);
+              document.removeEventListener("mouseup", onMouseUp);
+              return;
+            }
+
+            const allItems = Array.from(container.querySelectorAll(".item.editable"));
+            
+            // 找到放置位置：基于 drag-over 标记的元素
+            let targetIndex = -1;
+            for (let i = 0; i < allItems.length; i++) {
+              if (allItems[i].classList.contains("drag-over")) {
+                targetIndex = i;
+                break;
+              }
+            }
+
+            // 如果没找到 drag-over，说明拖到了底部，用最后一个后面的位置
+            if (targetIndex === -1) {
+              targetIndex = allItems.length;
+            }
+
+            // 清除样式
+            draggingItem.classList.remove("dragging");
+            allItems.forEach(item => item.classList.remove("drag-over"));
+
+            // 执行插入操作而不是交换
+            if (targetIndex !== draggingItemIndex && targetIndex !== draggingItemIndex + 1) {
+              const entry = DATA[currentIndex];
+              if (entry && entry.items) {
+                // 删除原来的项
+                const [item] = entry.items.splice(draggingItemIndex, 1);
+                
+                // 计算新的插入位置（因为已经删除了一个元素）
+                let insertIndex = targetIndex;
+                if (targetIndex > draggingItemIndex) {
+                  insertIndex = targetIndex - 1;
+                }
+                
+                // 插入到新位置
+                entry.items.splice(insertIndex, 0, item);
+                renderEditingMode(entry);
+              }
+            }
+
+            draggingItem = null;
+            draggingItemIndex = -1;
+            document.removeEventListener("mousemove", onMouseMove);
+            document.removeEventListener("mouseup", onMouseUp);
+          }
+
+          document.addEventListener("mousemove", onMouseMove);
+          document.addEventListener("mouseup", onMouseUp);
+        });
+      });
+    }
+
+    /**
+     * 渲染编辑模式下的列表项
+     */
+    function renderEditingMode(entry) {
+      const itemsContainer = document.querySelector(".items");
+      if (!itemsContainer) return;
+
+      itemsContainer.innerHTML = entry.items.map((item, index) => `
+        <div class="item editable">
+          <div class="drag-handle">≡</div>
+          <input type="text" class="item-input" value="${escapeHtml(item)}" data-index="${index}" />
+          <button class="delete-btn" data-index="${index}">×</button>
+        </div>
+      `).join("");
+
+      // 绑定删除事件
+      document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          const index = Number(e.target.dataset.index);
+          entry.items.splice(index, 1);
+          renderEditingMode(entry);
+        });
+      });
+
+      // 绑定编辑事件
+      document.querySelectorAll(".item-input").forEach(input => {
+        input.addEventListener("change", (e) => {
+          const index = Number(e.target.dataset.index);
+          entry.items[index] = e.target.value || "未命名";
+        });
+
+        input.addEventListener("input", (e) => {
+          const index = Number(e.target.dataset.index);
+          entry.items[index] = e.target.value || "未命名";
+        });
+      });
+
+      // 设置拖动排序
+      setupDragAndDrop();
+    }
+
+    /**
      * 渲染“列表抽取”模式的面板内容。
      * @param {Object} entry 当前模式数据
      */
     function renderListPanel(entry) {
-      panelBody.innerHTML = `
-        ${renderResultBox()}
-        <div class="toolbar">
-          <button class="primary" id="drawListBtn">开始抽取</button>
-        </div>
-        <div class="items">
-          ${entry.items.map(item => `<div class="item">${escapeHtml(item)}</div>`).join("")}
-        </div>
-      `;
+      if (isEditingMode) {
+        panelBody.innerHTML = `
+          ${renderResultBox()}
+          <div class="toolbar">
+            <button class="primary" id="saveBtn">保存</button>
+            <button class="primary" style="background: #dc2626;" id="cancelBtn">取消</button>
+            <button class="primary" style="background: #16a34a;" id="addBtn">+ 添加项目</button>
+          </div>
+          <div class="items"></div>
+        `;
 
-      document.getElementById("drawListBtn").addEventListener("click", () => {
-        const item = pickOne(entry.items);
-        setResult(item ?? "当前列表为空");
-      });
+        renderEditingMode(entry);
+
+        // 添加项目
+        document.getElementById("addBtn").addEventListener("click", () => {
+          entry.items.push("新项目");
+          renderEditingMode(entry);
+        });
+
+        // 保存
+        document.getElementById("saveBtn").addEventListener("click", () => {
+          isEditingMode = false;
+          editingBackup = null;
+          saveToStorage();
+          render();
+        });
+
+        // 取消
+        document.getElementById("cancelBtn").addEventListener("click", () => {
+          if (editingBackup) {
+            entry.items = [...editingBackup];
+          }
+          isEditingMode = false;
+          editingBackup = null;
+          render();
+        });
+
+        // 禁用开始抽取按钮（虽然不显示）
+        setResult("编辑中...");
+      } else {
+        panelBody.innerHTML = `
+          ${renderResultBox()}
+          <div class="toolbar">
+            <button class="primary" id="drawListBtn">开始抽取</button>
+            <button class="primary" style="background: #0891b2;" id="editBtn">编辑</button>
+          </div>
+          <div class="items">
+            ${entry.items.map(item => `<div class="item">${escapeHtml(item)}</div>`).join("")}
+          </div>
+        `;
+
+        document.getElementById("drawListBtn").addEventListener("click", () => {
+          const item = pickOne(entry.items);
+          setResult(item ?? "当前列表为空");
+        });
+
+        document.getElementById("editBtn").addEventListener("click", () => {
+          isEditingMode = true;
+          editingBackup = [...entry.items];
+          renderPanel();
+        });
+      }
     }
 
     /**
@@ -562,6 +854,7 @@
     }
 
     // 页面初始化入口
+    loadFromStorage();
     render();
   </script>
 </body>
