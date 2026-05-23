@@ -23,6 +23,17 @@
       box-sizing: border-box;
     }
 
+    /* 保持居中布局不因内容高度触发滚动条而横向跳动 */
+    html {
+      scrollbar-gutter: stable;
+    }
+
+    @supports not (scrollbar-gutter: stable) {
+      html {
+        overflow-y: scroll;
+      }
+    }
+
     /* 页面基础样式 */
     body {
       margin: 0;
@@ -106,6 +117,59 @@
       gap: 10px;
       flex-wrap: wrap;
       margin-bottom: 14px;
+      align-items: center;
+    }
+
+    .list-selector {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      margin-left: 12px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .list-selector select {
+      min-width: 128px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 10px;
+      font: inherit;
+      font-weight: 400;
+      background: white;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .list-name-editor {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .list-name-editor input {
+      width: 160px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 10px;
+      background: white;
+      color: var(--text);
+      font: inherit;
+      font-weight: 400;
+    }
+
+    button.primary.list-delete {
+      background: var(--danger);
+    }
+
+    button.primary.list-delete:hover {
+      background: #b91c1c;
+    }
+
+    button.primary.list-delete.confirming {
+      background: #991b1b;
     }
 
     /* 主要按钮样式 */
@@ -185,6 +249,136 @@
       background: white;
     }
 
+    .number-control {
+      display: inline-grid;
+      grid-template-columns: 120px 22px;
+      height: 42px;
+      vertical-align: middle;
+    }
+
+    .number-control input {
+      width: 120px;
+      border: 1px solid var(--border);
+      border-right: 0;
+      border-radius: 10px 0 0 10px;
+      padding: 10px 12px;
+      font-size: 15px;
+      background: white;
+    }
+
+    .number-stepper {
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      border: 1px solid var(--border);
+      border-radius: 0 10px 10px 0;
+      overflow: hidden;
+      background: #f9fafb;
+    }
+
+    .number-step {
+      border: 0;
+      border-bottom: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 9px;
+      line-height: 1;
+      padding: 0;
+    }
+
+    .number-step:last-child {
+      border-bottom: 0;
+    }
+
+    .number-step:hover {
+      background: #eef2ff;
+      color: var(--primary);
+    }
+
+    .number-panel-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 240px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .number-main {
+      min-width: 0;
+    }
+
+    .number-presets {
+      border-left: 1px solid var(--border);
+      padding-left: 16px;
+      min-width: 0;
+    }
+
+    .number-presets-title {
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .number-preset-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .number-preset-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 6px;
+    }
+
+    .number-preset {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: white;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 14px;
+      min-width: 0;
+      overflow: hidden;
+      padding: 9px 10px;
+      text-align: left;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .number-preset.active {
+      border-color: var(--primary);
+      background: #eff6ff;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .number-preset-delete {
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--danger);
+      cursor: pointer;
+      font-size: 14px;
+      min-width: 34px;
+      padding: 0 8px;
+      transition: background 0.15s ease, color 0.15s ease, padding 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .number-preset-delete:hover {
+      background: rgba(220, 38, 38, 0.1);
+    }
+
+    .number-preset-delete.confirming,
+    .number-preset-delete.confirming:hover {
+      background: var(--danger);
+      color: white;
+      padding: 0 10px;
+    }
+
+    .number-empty {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
     /* 分组展示块间距 */
     .section-gap {
       margin-top: 16px;
@@ -193,7 +387,10 @@
     /* 分组标题样式 */
     .small-title {
       font-weight: 800;
+      line-height: 24px;
       margin-bottom: 10px;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     /* 错误提示样式 */
@@ -207,12 +404,16 @@
       display: flex;
       gap: 8px;
       align-items: center;
+      box-sizing: border-box;
+      min-height: 58px;
       background: white;
       border-color: var(--primary);
     }
 
     .item.editable input {
       flex: 1;
+      box-sizing: border-box;
+      height: 36px;
       border: 1px solid var(--border);
       border-radius: 6px;
       padding: 8px 10px;
@@ -231,6 +432,30 @@
     .item.editable button:hover {
       background: rgba(220, 38, 38, 0.1);
       border-radius: 4px;
+    }
+
+    .item.editable button.confirming,
+    .item.editable button.confirming:hover {
+      background: var(--danger);
+      border-radius: 6px;
+      color: white;
+      padding: 8px 10px;
+      white-space: nowrap;
+    }
+
+    button.primary.list-add-item {
+      display: block;
+      box-sizing: border-box;
+      width: 100%;
+      margin-top: 8px;
+      min-height: 58px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #16a34a;
+    }
+
+    button.primary.list-add-item:hover {
+      background: #15803d;
     }
 
     .drag-handle {
@@ -256,9 +481,183 @@
       padding-top: 7px;
     }
 
+    .item.drag-over-inside {
+      box-shadow: inset 0 0 0 2px var(--primary);
+    }
+
+    .group-node.dragging {
+      opacity: 0.5;
+    }
+
+    .group-node.drag-over {
+      border-top-color: var(--primary);
+      border-top-width: 4px;
+    }
+
+    .group-node.drag-over-child {
+      box-shadow: inset 0 0 0 2px var(--primary);
+      border-color: var(--primary);
+    }
+
+    .group-children.drag-over-inside,
+    .group-tree.drag-over-inside {
+      box-shadow: inset 0 0 0 2px var(--primary);
+      border-radius: 8px;
+    }
+
     button.primary:disabled {
       background: #9ca3af;
       cursor: not-allowed;
+    }
+
+    /* 编辑模式下的分组树状结构 */
+    .group-tree {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .group-node {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding: 12px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: #fafafa;
+    }
+
+    .group-node.level-blue {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+
+    .group-node.level-cyan {
+      border-color: #0891b2;
+      background: #ecfeff;
+    }
+
+    .group-node.level-sky {
+      border-color: #38bdf8;
+      background: #f0f9ff;
+    }
+
+    .group-node.deleting-subtree {
+      border-color: var(--danger);
+    }
+
+    .group-node-header {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto auto;
+      gap: 8px;
+      align-items: center;
+      min-height: 40px;
+    }
+
+    .group-node-header .drag-handle {
+      align-self: stretch;
+      display: flex;
+      align-items: center;
+      height: auto;
+      justify-content: center;
+      padding-bottom: 0;
+      padding-top: 0;
+    }
+
+    .group-node-header .group-node-name {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-sizing: border-box;
+      display: block;
+      height: 40px;
+      min-height: 40px;
+      line-height: 22px;
+      padding: 8px 10px;
+      font-size: 16px;
+      font-weight: 700;
+      min-width: 0;
+      overflow: hidden;
+      resize: none;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      font-family: inherit;
+      outline: none;
+      vertical-align: top;
+    }
+
+    .group-node.leaf-node .group-node-header .group-node-name {
+      font-weight: 400;
+    }
+
+    .group-node-header button {
+      border: 0;
+      background: none;
+      color: var(--danger);
+      cursor: pointer;
+      align-self: stretch;
+      height: auto;
+      line-height: 1;
+      padding: 0 8px;
+      font-size: 14px;
+    }
+
+    .group-node-header button:hover {
+      background: rgba(220, 38, 38, 0.1);
+      border-radius: 4px;
+    }
+
+    .group-node-header button.confirming,
+    .group-node-header button.confirming:hover {
+      align-self: center;
+      background: var(--danger);
+      border-radius: 6px;
+      color: white;
+      height: 36px;
+      padding: 0 10px;
+      white-space: nowrap;
+    }
+
+    .group-node-header button.group-add-child {
+      color: #16a34a;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .group-node-header button.group-add-child:hover {
+      background: rgba(22, 163, 74, 0.1);
+    }
+
+    .group-children {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-left: 16px;
+      margin-top: 12px;
+    }
+
+    .group-node.leaf-node > .group-children {
+      display: none;
+    }
+
+    button.primary.group-add-item {
+      align-self: stretch;
+      width: 100%;
+      min-height: 68px;
+      border-radius: 8px;
+      background: #16a34a;
+      font-size: 14px;
+      white-space: normal;
+    }
+
+    button.primary.group-add-item:hover {
+      background: #15803d;
+    }
+
+    .group-tree + .group-add-item {
+      margin-top: 12px;
     }
 
     /* 响应式布局：窄屏时改为单列 */
@@ -273,6 +672,17 @@
 
       .result-value {
         font-size: 22px;
+      }
+
+      .number-panel-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .number-presets {
+        border-left: 0;
+        border-top: 1px solid var(--border);
+        padding-left: 0;
+        padding-top: 16px;
       }
     }
   </style>
@@ -302,79 +712,62 @@
       {
         type: "list",
         title: "列表抽取",
-        items: [
-          "是",
-          "否"
+        lists: [
+          {
+            name: "默认",
+            items: [
+              "是",
+              "否"
+            ]
+          }
         ]
       },
       {
         type: "number",
         title: "数字抽取",
-        min: 1,
-        max: 100
+        min: "0",
+        max: "100",
+        ranges: []
       },
       {
         type: "groups",
         title: "分组抽取",
-        groups: {
-          "学习": {
-            "知识":[
-              "数学",
-              "语文",
-              "英语",
-              "历史",
-              "地理",
-              "生物",
-              "化学",
-              "物理",
-              "政治"
-            ],
-            "技能":{
-              "编程":[
-                "Python",
-                "JavaScript",
-                "Java",
-                "C++"
-              ],
-              "写作":[],
-              "绘画":[]
+        groupLists: [
+          {
+            name: "默认",
+            groups: {
+              "学习": {},
+              "娱乐": {
+                "玩游戏": {},
+                "看视频": {},
+                "看书": {}
+              },
+              "创作": {
+                "音乐": {},
+                "视频": {},
+                "画画": {}
+              }
             }
-          },
-          "娱乐": {
-            "室内": [
-              "玩游戏",
-              "看视频",
-              "读书"
-            ],
-            "室外": [
-              "跑步",
-              "登山",
-              "骑车"
-            ]
-          },
-          "创作": {
-            "技术类": [
-              "写程序",
-              "搭建网站",
-              "写文档"
-            ],
-            "艺术类": [
-              "剪视频",
-              "做音乐",
-              "画画"
-            ]
           }
-        }
+        ]
       }
     ];
 
     // 当前选中模式的索引，默认为第一个模式
     let currentIndex = 0;
-    
+
     // 编辑模式状态
     let isEditingMode = false;
     let editingBackup = null;
-    let draggedItem = null;
+    let deletingListItemIndex = null;
+    let deletingList = false;
+    let listEditState = null;
+    let pendingNewList = null;
+    let deletingGroupPath = null;
+    let deletingGroupList = false;
+    let groupListEditState = null;
+    let pendingNewGroupList = null;
+    const MAX_GROUP_DEPTH = 5;
 
     // 缓存常用 DOM 元素引用，减少重复查询
     const listNav = document.getElementById("listNav");
@@ -386,19 +779,30 @@
      */
     function loadFromStorage() {
       const saved = localStorage.getItem("randomSelectionData");
+      let parsedData = [];
       if (saved) {
         try {
-          const parsedData = JSON.parse(saved);
-          // 只更新列表类型的数据
+          parsedData = JSON.parse(saved);
+          // 更新数字类型的数据；可命名列表会在后续统一迁移。
           for (let i = 0; i < DATA.length; i++) {
-            if (DATA[i].type === "list" && parsedData[i]) {
-              DATA[i].items = parsedData[i].items || DATA[i].items;
+            if (parsedData[i]) {
+              if (DATA[i].type === "number") {
+                normalizeNumberEntry(DATA[i], parsedData[i]);
+              }
             }
           }
         } catch (e) {
           console.error("读取本地数据失败:", e);
         }
       }
+
+      DATA.forEach((entry, index) => {
+        if (entry.type === "list") {
+          normalizeListEntry(entry, parsedData[index]);
+        } else if (entry.type === "groups") {
+          normalizeGroupListEntry(entry, parsedData[index]);
+        }
+      });
     }
 
     /**
@@ -413,6 +817,969 @@
     }
 
     /**
+     * 将旧的单一 items 数组迁移为可切换的列表集合。
+     */
+    function normalizeListEntry(entry, storedEntry) {
+      const sourceLists = Array.isArray(storedEntry?.lists)
+        ? storedEntry.lists
+        : [{
+            name: "列表 1",
+            items: Array.isArray(storedEntry?.items)
+              ? storedEntry.items
+              : (entry.lists[0]?.items ?? [])
+          }];
+
+      entry.lists = sourceLists.map((list, index) => ({
+        name: String(list?.name || `列表 ${index + 1}`),
+        items: Array.isArray(list?.items) ? list.items.map(item => String(item)) : []
+      }));
+
+      if (entry.lists.length === 0) {
+        entry.lists.push({ name: "列表 1", items: ["是", "否"] });
+      }
+
+      const storedIndex = storedEntry?.selectedListIndex;
+      entry.selectedListIndex = Number.isInteger(storedIndex) && entry.lists[storedIndex]
+        ? storedIndex
+        : 0;
+    }
+
+    /**
+     * 深拷贝嵌套对象
+     */
+    function deepCopy(obj) {
+      if (obj === null || typeof obj !== 'object') {
+        return obj;
+      }
+      if (Array.isArray(obj)) {
+        return obj.map(item => deepCopy(item));
+      }
+      const copied = {};
+      for (const key in obj) {
+        copied[key] = deepCopy(obj[key]);
+      }
+      return copied;
+    }
+
+    // 保留代码中的分组缺省预设，用于首次加载和删除最后一个列表后的恢复。
+    const DEFAULT_GROUP_LIST_PRESET = deepCopy(
+      DATA.find(entry => entry.type === "groups").groupLists[0]
+    );
+
+    /**
+     * 将数据路径写入 HTML 属性。
+     */
+    function pathToAttr(path) {
+      return escapeHtml(JSON.stringify(path));
+    }
+
+    /**
+     * 从当前元素或最近的路径节点读取数据路径。
+     */
+    function getPathFromElement(element) {
+      const pathElement = element.closest("[data-path]");
+      if (!pathElement) return null;
+
+      try {
+        return JSON.parse(pathElement.dataset.path);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    /**
+     * 生成不会覆盖同级对象的名称。
+     */
+    function getUniqueKey(container, baseName) {
+      const fallback = String(baseName || "未命名");
+      if (!container || typeof container !== "object" || Array.isArray(container)) {
+        return fallback;
+      }
+
+      let name = fallback;
+      let counter = 1;
+      while (Object.prototype.hasOwnProperty.call(container, name)) {
+        name = `${fallback}${counter}`;
+        counter++;
+      }
+      return name;
+    }
+
+    /**
+     * 将旧的数组分组数据迁移为纯对象树。
+     */
+    function normalizeGroupTree(groupData) {
+      if (Array.isArray(groupData)) {
+        const normalized = {};
+        groupData.forEach(item => {
+          normalized[getUniqueKey(normalized, item)] = {};
+        });
+        return normalized;
+      }
+
+      if (groupData && typeof groupData === "object") {
+        const normalized = {};
+        Object.entries(groupData).forEach(([key, value]) => {
+          normalized[key] = normalizeGroupTree(value);
+        });
+        return normalized;
+      }
+
+      return {};
+    }
+
+    /**
+     * 将旧的单棵分组树迁移为可切换的命名分组列表。
+     */
+    function normalizeGroupListEntry(entry, storedEntry) {
+      const sourceLists = Array.isArray(storedEntry?.groupLists)
+        ? storedEntry.groupLists
+        : [{
+            name: DEFAULT_GROUP_LIST_PRESET.name,
+            groups: storedEntry?.groups ?? DEFAULT_GROUP_LIST_PRESET.groups
+          }];
+
+      entry.groupLists = sourceLists.map((list, index) => ({
+        name: String(list?.name || `列表 ${index + 1}`),
+        groups: normalizeGroupTree(list?.groups)
+      }));
+
+      if (entry.groupLists.length === 0) {
+        entry.groupLists.push(createDefaultGroupList());
+      }
+
+      const storedIndex = storedEntry?.selectedGroupListIndex;
+      entry.selectedGroupListIndex = Number.isInteger(storedIndex) && entry.groupLists[storedIndex]
+        ? storedIndex
+        : 0;
+    }
+
+    /**
+     * 返回代码中定义的分组缺省列表。
+     */
+    function createDefaultGroupList() {
+      return deepCopy(DEFAULT_GROUP_LIST_PRESET);
+    }
+
+    /**
+     * 返回新建分组列表的可编辑初始树。
+     */
+    function createNewGroupTree() {
+      return { "新项目": {} };
+    }
+
+    /**
+     * 读取编辑中的分组树草稿。
+     */
+    function getEditingGroupTree() {
+      return groupListEditState?.draftGroups ?? {};
+    }
+
+    /**
+     * 判断两个路径是否相同。
+     */
+    function isSamePath(firstPath, secondPath) {
+      return firstPath.length === secondPath.length && firstPath.every((value, index) => value === secondPath[index]);
+    }
+
+    /**
+     * 判断 candidatePath 是否在 parentPath 内部。
+     */
+    function isDescendantPath(candidatePath, parentPath) {
+      return candidatePath.length > parentPath.length && parentPath.every((value, index) => candidatePath[index] === value);
+    }
+
+    /**
+     * 判断当前节点是否属于正在确认删除的分组子树。
+     */
+    function isInDeletingGroupSubtree(path) {
+      if (!deletingGroupPath) return false;
+
+      try {
+        const targetPath = JSON.parse(deletingGroupPath);
+        return isSamePath(path, targetPath) || isDescendantPath(path, targetPath);
+      } catch (e) {
+        return false;
+      }
+    }
+
+    /**
+     * 计算当前子树的最大层数。
+     */
+    function getSubtreeDepth(groupData) {
+      if (!groupData || typeof groupData !== "object") {
+        return 0;
+      }
+
+      const childDepths = Object.values(groupData).map(child => getSubtreeDepth(child));
+      return childDepths.length === 0 ? 1 : 1 + Math.max(...childDepths);
+    }
+
+    /**
+     * 递归渲染编辑模式下的分组树
+     * @param {Object} groups 分组数据
+     * @param {string} containerId 容器ID
+     * @param {Object} entry 当前模式数据
+     */
+    function renderGroupEditTree(groups, containerId, entry) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      const html = Object.entries(groups).map(([groupName, groupData], index) =>
+        renderGroupNode(groupName, groupData, index, entry, [groupName])
+      ).join("");
+
+      container.innerHTML = html;
+      resizeGroupNameTextareas();
+      setupGroupEditEvents(entry);
+    }
+
+    /**
+     * 让编辑态分组名称文本框按内容增高，单行时保持固定高度。
+     */
+    function resizeGroupNameTextareas() {
+      document.querySelectorAll(".group-node-name").forEach(textarea => {
+        textarea.style.height = "40px";
+        textarea.style.height = `${Math.max(40, textarea.scrollHeight + 2)}px`;
+      });
+    }
+
+    /**
+     * 渲染单个分组节点（递归）
+     */
+    function renderGroupNode(nodeName, nodeData, index, entry, path) {
+      let childrenHtml = '';
+
+      if (typeof nodeData === 'object' && nodeData !== null) {
+        const subEntries = Object.entries(nodeData);
+        const isLeafNode = subEntries.length === 0;
+        const canAddChild = path.length < MAX_GROUP_DEPTH;
+        const isDeletingSubtree = isInDeletingGroupSubtree(path);
+        const isDeleteTarget = deletingGroupPath === JSON.stringify(path);
+        const colorClass = isLeafNode ? "level-sky" : path.length % 2 === 1 ? "level-blue" : "level-cyan";
+        childrenHtml = subEntries.map(([subName, subData], idx) =>
+          renderGroupNode(subName, subData, idx, entry, [...path, subName])
+        ).join("");
+
+        return `
+          <div class="group-node ${colorClass} ${isLeafNode ? 'leaf-node' : ''}${isDeletingSubtree ? ' deleting-subtree' : ''}" data-path="${pathToAttr(path)}">
+            <div class="group-node-header">
+              <div class="drag-handle" title="拖动" style="flex-shrink: 0;">≡</div>
+              <textarea class="group-node-name" data-is-name="true" rows="1">${escapeHtml(nodeName)}</textarea>
+              ${isLeafNode && canAddChild ? '<button class="group-add-child" title="添加子项目">+</button>' : ''}
+              <button class="group-delete-node${isDeleteTarget ? ' confirming' : ''}" title="删除">${isDeleteTarget ? '确认删除' : '×'}</button>
+            </div>
+            <div class="group-children">
+              ${childrenHtml}
+              ${isLeafNode || !canAddChild ? '' : '<button class="primary group-add-subgroup group-add-item">+ 添加项目</button>'}
+            </div>
+          </div>
+        `;
+      }
+      return '';
+    }
+
+    /**
+     * 根据路径获取嵌套对象中的值
+     */
+    function getValueByPath(obj, path) {
+      let current = obj;
+      for (const key of path) {
+        if (current && typeof current === 'object' && Object.prototype.hasOwnProperty.call(current, key)) {
+          current = current[key];
+        } else {
+          return undefined;
+        }
+      }
+      return current;
+    }
+
+    /**
+     * 根据路径设置嵌套对象中的值
+     */
+    function setValueByPath(obj, path, value) {
+      if (path.length === 0) return;
+      let current = obj;
+      for (let i = 0; i < path.length - 1; i++) {
+        const key = path[i];
+        if (!Object.prototype.hasOwnProperty.call(current, key)) {
+          current[key] = {};
+        }
+        current = current[key];
+      }
+      current[path[path.length - 1]] = value;
+    }
+
+    /**
+     * 根据路径删除嵌套对象中的值
+     */
+    function deleteByPath(obj, path) {
+      if (path.length === 0) return;
+      let current = obj;
+      for (let i = 0; i < path.length - 1; i++) {
+        const key = path[i];
+        if (!Object.prototype.hasOwnProperty.call(current, key)) return;
+        current = current[key];
+      }
+      const lastKey = path[path.length - 1];
+      if (Array.isArray(current)) {
+        current.splice(lastKey, 1);
+      } else {
+        delete current[lastKey];
+      }
+    }
+
+    /**
+     * 设置分组编辑模式的事件
+     */
+    function setupGroupEditEvents(entry) {
+      // 编辑分组名称。确认后重渲染，避免输入中途路径失效。
+      document.querySelectorAll(".group-node-name").forEach(input => {
+        input.addEventListener("input", () => {
+          input.style.height = "40px";
+          input.style.height = `${Math.max(40, input.scrollHeight + 2)}px`;
+        });
+
+        input.addEventListener("blur", (e) => {
+          const path = getPathFromElement(e.target);
+          if (!path) return;
+
+          const parent = getValueByPath(getEditingGroupTree(), path.slice(0, -1));
+          if (parent && typeof parent === 'object' && !Array.isArray(parent)) {
+            const oldKey = path[path.length - 1];
+            const newKey = e.target.value.trim() || "未命名";
+
+            if (newKey !== oldKey && !Object.prototype.hasOwnProperty.call(parent, newKey)) {
+              const value = parent[oldKey];
+              delete parent[oldKey];
+              parent[newKey] = value;
+              deletingGroupPath = null;
+              renderGroupsEditingMode(entry);
+            } else {
+              e.target.value = oldKey;
+              e.target.style.height = "40px";
+              e.target.style.height = `${Math.max(40, e.target.scrollHeight + 2)}px`;
+            }
+          }
+        });
+      });
+
+      // 删除分组/项目
+      document.querySelectorAll(".group-delete-node").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const path = getPathFromElement(btn);
+          if (!path) return;
+          const pathKey = JSON.stringify(path);
+          if (deletingGroupPath !== pathKey) {
+            deletingGroupPath = pathKey;
+            renderGroupsEditingMode(entry);
+            return;
+          }
+
+          deleteByPath(getEditingGroupTree(), path);
+          deletingGroupPath = null;
+          renderGroupsEditingMode(entry);
+        });
+      });
+
+      // 给任意项目添加子项目
+      document.querySelectorAll(".group-add-child").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          const path = getPathFromElement(btn);
+          if (!path) return;
+          if (path.length >= MAX_GROUP_DEPTH) {
+            setResult(`最多支持 ${MAX_GROUP_DEPTH} 层`);
+            return;
+          }
+          const parent = getValueByPath(getEditingGroupTree(), path);
+          if (typeof parent === 'object' && !Array.isArray(parent)) {
+            parent[getUniqueKey(parent, "新项目")] = {};
+            deletingGroupPath = null;
+            renderGroupsEditingMode(entry);
+          }
+        });
+      });
+
+      // 在当前层级下方添加平级项目
+      document.querySelectorAll(".group-add-subgroup").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          const path = getPathFromElement(btn);
+          if (!path) return;
+          if (path.length >= MAX_GROUP_DEPTH) {
+            setResult(`最多支持 ${MAX_GROUP_DEPTH} 层`);
+            return;
+          }
+          const parent = getValueByPath(getEditingGroupTree(), path);
+          if (typeof parent === 'object' && !Array.isArray(parent)) {
+            parent[getUniqueKey(parent, "新项目")] = {};
+            deletingGroupPath = null;
+            renderGroupsEditingMode(entry);
+          }
+        });
+      });
+
+      // 设置拖动排序
+      setupGroupDragAndDrop(entry);
+    }
+
+    /**
+     * 分组拖动排序
+     */
+    function setupGroupDragAndDrop(entry) {
+      const dragHandles = document.querySelectorAll(".group-node-header > .drag-handle");
+      let draggedElement = null;
+      let draggedPath = null;
+      let currentDropInfo = null;
+      let autoScrollFrame = null;
+      let autoScrollSpeed = 0;
+      let lastClientX = 0;
+      let lastClientY = 0;
+
+      function onDragWheel(e) {
+        if (!draggedPath) return;
+        e.preventDefault();
+        e.stopPropagation();
+        window.scrollBy(0, e.deltaY);
+        updateDropMarkerFromPoint(lastClientX, lastClientY);
+      }
+
+      function onDocumentMouseMove(e) {
+        if (!draggedPath) return;
+        e.preventDefault();
+        lastClientX = e.clientX;
+        lastClientY = e.clientY;
+        updateAutoScroll(e.clientY);
+        updateDropMarkerFromPoint(e.clientX, e.clientY);
+      }
+
+      function onDocumentMouseUp(e) {
+        if (!draggedPath) return;
+
+        const pathToMove = draggedPath;
+        const dropInfo = currentDropInfo;
+        finishMouseDrag();
+
+        if (dropInfo && moveGroupEntry(entry, pathToMove, dropInfo.destinationPath, dropInfo.insertIndex)) {
+          deletingGroupPath = null;
+          renderGroupsEditingMode(entry);
+        }
+      }
+
+      function updateAutoScroll(clientY) {
+        const edgeSize = 80;
+        const maxSpeed = 18;
+
+        if (clientY < edgeSize) {
+          autoScrollSpeed = -maxSpeed * ((edgeSize - clientY) / edgeSize);
+        } else if (clientY > window.innerHeight - edgeSize) {
+          autoScrollSpeed = maxSpeed * ((clientY - (window.innerHeight - edgeSize)) / edgeSize);
+        } else {
+          autoScrollSpeed = 0;
+        }
+
+        if (autoScrollSpeed !== 0 && autoScrollFrame === null) {
+          autoScrollFrame = requestAnimationFrame(runAutoScroll);
+        }
+      }
+
+      function runAutoScroll() {
+        if (autoScrollSpeed === 0) {
+          autoScrollFrame = null;
+          return;
+        }
+
+        window.scrollBy(0, autoScrollSpeed);
+        updateDropMarkerFromPoint(lastClientX, lastClientY);
+        autoScrollFrame = requestAnimationFrame(runAutoScroll);
+      }
+
+      function updateDropMarkerFromPoint(clientX, clientY) {
+        const target = document.elementFromPoint(clientX, clientY);
+        if (!target) return;
+
+        clearGroupDragMarkers();
+        currentDropInfo = getGroupDropInfo(entry, { target, clientY });
+        markGroupDropPosition(currentDropInfo);
+      }
+
+      function finishMouseDrag() {
+        if (draggedElement) draggedElement.classList.remove("dragging");
+        draggedElement = null;
+        draggedPath = null;
+        currentDropInfo = null;
+        autoScrollSpeed = 0;
+        if (autoScrollFrame !== null) {
+          cancelAnimationFrame(autoScrollFrame);
+          autoScrollFrame = null;
+        }
+        window.removeEventListener("wheel", onDragWheel, true);
+        window.removeEventListener("mousemove", onDocumentMouseMove);
+        window.removeEventListener("mouseup", onDocumentMouseUp);
+        document.body.style.userSelect = "";
+        document.body.style.cursor = "";
+        clearGroupDragMarkers();
+      }
+
+      dragHandles.forEach(handle => {
+        handle.addEventListener("mousedown", (e) => {
+          const node = handle.closest("[data-path]");
+          if (!node) return;
+
+          e.preventDefault();
+          draggedElement = node;
+          draggedPath = JSON.parse(node.dataset.path);
+          lastClientX = e.clientX;
+          lastClientY = e.clientY;
+
+          node.classList.add("dragging");
+          window.addEventListener("wheel", onDragWheel, { passive: false, capture: true });
+          window.addEventListener("mousemove", onDocumentMouseMove);
+          window.addEventListener("mouseup", onDocumentMouseUp);
+          document.body.style.userSelect = "none";
+          document.body.style.cursor = "grabbing";
+          updateDropMarkerFromPoint(e.clientX, e.clientY);
+        });
+      });
+    }
+
+    /**
+     * 清除分组拖动时的落点提示。
+     */
+    function clearGroupDragMarkers() {
+      document.querySelectorAll(".group-node.drag-over").forEach(node => {
+        node.classList.remove("drag-over");
+      });
+      document.querySelectorAll(".group-node.drag-over-child").forEach(node => {
+        node.classList.remove("drag-over-child");
+      });
+      document.querySelectorAll(".group-children.drag-over-inside, .group-tree.drag-over-inside").forEach(container => {
+        container.classList.remove("drag-over-inside");
+      });
+    }
+
+    /**
+     * 将目标节点顶部的落点映射到其所在层级，支持插入到首项之前。
+     */
+    function getSiblingDropInfo(node) {
+      const container = node.parentElement;
+      if (!container || (!container.classList.contains("group-tree") && !container.classList.contains("group-children"))) {
+        return null;
+      }
+
+      const siblings = Array.from(container.querySelectorAll(":scope > .group-node"));
+      const insertIndex = siblings.indexOf(node);
+      if (insertIndex < 0) return null;
+
+      if (container.classList.contains("group-tree")) {
+        return {
+          container,
+          destinationPath: [],
+          insertIndex
+        };
+      }
+
+      const ownerNode = container.closest(".group-node");
+      if (!ownerNode) return null;
+
+      return {
+        container,
+        destinationPath: JSON.parse(ownerNode.dataset.path),
+        insertIndex
+      };
+    }
+
+    /**
+     * 计算拖动落点对应的父级路径和插入位置。
+     */
+    function getGroupDropInfo(entry, event) {
+      const hoveredNode = event.target.closest(".group-node");
+      if (hoveredNode) {
+        const hoveredHeader = hoveredNode.querySelector(":scope > .group-node-header");
+        const nodeRect = hoveredNode.getBoundingClientRect();
+        const headerRect = hoveredHeader && hoveredHeader.getBoundingClientRect();
+        const beforeBoundary = headerRect ? headerRect.top + headerRect.height / 2 : nodeRect.top + 20;
+
+        if (event.clientY < beforeBoundary) {
+          return getSiblingDropInfo(hoveredNode);
+        }
+      }
+
+      const header = event.target.closest(".group-node-header");
+      if (header) {
+        const node = header.closest(".group-node");
+        if (!node) return null;
+
+        const targetPath = JSON.parse(node.dataset.path);
+        const children = node.querySelector(":scope > .group-children");
+
+        return {
+          container: children || node,
+          childTarget: node,
+          destinationPath: targetPath,
+          insertIndex: 0
+        };
+      }
+
+      const directNode = event.target.closest(".group-node");
+      const childrenContainer = event.target.closest(".group-children");
+      if (directNode && (!childrenContainer || directNode.parentElement === childrenContainer)) {
+        const nodePath = JSON.parse(directNode.dataset.path);
+        const children = directNode.querySelector(":scope > .group-children");
+
+        return {
+          container: children || directNode,
+          childTarget: directNode,
+          destinationPath: nodePath,
+          insertIndex: 0
+        };
+      }
+
+      if (childrenContainer) {
+        const ownerNode = childrenContainer.closest(".group-node");
+        if (!ownerNode) return null;
+
+        const ownerPath = JSON.parse(ownerNode.dataset.path);
+        return {
+          container: childrenContainer,
+          destinationPath: ownerPath,
+          insertIndex: getInsertIndexInContainer(childrenContainer, event.clientY)
+        };
+      }
+
+      const tree = document.getElementById("groupTree");
+      if (tree && event.target === tree) {
+        return {
+          container: tree,
+          destinationPath: [],
+          insertIndex: getInsertIndexInContainer(tree, event.clientY)
+        };
+      }
+
+      return null;
+    }
+
+    /**
+     * 根据鼠标纵向位置，计算应插入到容器内第几个子节点前。
+     */
+    function getInsertIndexInContainer(container, clientY) {
+      const children = Array.from(container.querySelectorAll(":scope > .group-node"));
+
+      for (let i = 0; i < children.length; i++) {
+        const rect = children[i].getBoundingClientRect();
+        if (clientY < rect.top + rect.height / 2) {
+          return i;
+        }
+      }
+
+      return children.length;
+    }
+
+    /**
+     * 显示当前拖动落点。
+     */
+    function markGroupDropPosition(dropInfo) {
+      if (!dropInfo || !dropInfo.container) return;
+
+      if (dropInfo.childTarget) {
+        dropInfo.childTarget.classList.add("drag-over-child");
+        return;
+      }
+
+      const children = Array.from(dropInfo.container.querySelectorAll(":scope > .group-node"));
+      const markerTarget = children[dropInfo.insertIndex];
+
+      if (markerTarget) {
+        markerTarget.classList.add("drag-over");
+      } else {
+        dropInfo.container.classList.add("drag-over-inside");
+      }
+    }
+
+    /**
+     * 移动分组编辑树中的节点，失败时不修改数据。
+     */
+    function moveGroupEntry(entry, draggedPath, destinationPath, insertIndex) {
+      if (isSamePath(draggedPath, destinationPath) || isDescendantPath(destinationPath, draggedPath)) {
+        return false;
+      }
+
+      const draggedParentPath = draggedPath.slice(0, -1);
+      const groups = getEditingGroupTree();
+      const draggedParent = getValueByPath(groups, draggedParentPath);
+      const draggedValue = getValueByPath(groups, draggedPath);
+      const draggedKey = draggedPath[draggedPath.length - 1];
+      const destination = getValueByPath(groups, destinationPath);
+
+      if (!draggedParent || typeof draggedParent !== "object" || Array.isArray(draggedParent)) {
+        return false;
+      }
+
+      if (!destination || typeof destination !== "object" || Array.isArray(destination)) {
+        return false;
+      }
+
+      if (destinationPath.length + getSubtreeDepth(draggedValue) > MAX_GROUP_DEPTH) {
+        setResult(`最多支持 ${MAX_GROUP_DEPTH} 层`);
+        return false;
+      }
+
+      const draggedIndex = Object.keys(draggedParent).indexOf(draggedKey);
+      let nextInsertIndex = insertIndex;
+      if (isSamePath(draggedParentPath, destinationPath) && draggedIndex < insertIndex) {
+        nextInsertIndex--;
+      }
+
+      deleteByPath(groups, draggedPath);
+      const nextDestination = getValueByPath(groups, destinationPath);
+      insertObjectEntry(nextDestination, draggedKey, draggedValue, nextInsertIndex);
+      return true;
+    }
+
+    /**
+     * 在对象的指定顺序位置插入键值对。
+     */
+    function insertObjectEntry(targetObject, key, value, insertIndex) {
+      const entries = Object.entries(targetObject);
+      const nextKey = getUniqueKey(targetObject, key);
+      const safeIndex = Math.max(0, Math.min(insertIndex, entries.length));
+      entries.splice(safeIndex, 0, [nextKey, value]);
+
+      Object.keys(targetObject).forEach(existingKey => {
+        delete targetObject[existingKey];
+      });
+      entries.forEach(([entryKey, entryValue]) => {
+        targetObject[entryKey] = entryValue;
+      });
+    }
+
+    /**
+     * 读取当前选择的分组列表；新建选项显示未保存的预览树。
+     */
+    function getSelectedGroupTree(entry, selectedIndex = entry.selectedGroupListIndex) {
+      if (selectedIndex === null) {
+        return pendingNewGroupList?.groups ?? {};
+      }
+
+      return entry.groupLists[selectedIndex]?.groups ?? {};
+    }
+
+    /**
+     * 渲染普通模式下的分组列表选择器。
+     */
+    function renderGroupListSelector(entry) {
+      const selectedValue = entry.selectedGroupListIndex === null
+        ? NEW_LIST_OPTION
+        : String(entry.selectedGroupListIndex);
+      const savedOptions = entry.groupLists.map((list, index) => `
+        <option value="${index}"${selectedValue === String(index) ? " selected" : ""}>${escapeHtml(list.name)}</option>
+      `).join("");
+
+      return `
+        <label class="list-selector">
+          列表：
+          <select id="groupListSelector">
+            ${savedOptions}
+            <option value="${NEW_LIST_OPTION}"${selectedValue === NEW_LIST_OPTION ? " selected" : ""}>+ 新建列表</option>
+          </select>
+        </label>
+      `;
+    }
+
+    /**
+     * 创建尚未保存的分组列表预览。
+     */
+    function createDefaultGroupListDraft(entry) {
+      let number = 1;
+      while (entry.groupLists.some(list => list.name === `列表 ${number}`)) {
+        number++;
+      }
+
+      return {
+        name: `列表 ${number}`,
+        groups: createNewGroupTree()
+      };
+    }
+
+    /**
+     * 为所选分组列表载入编辑草稿。
+     */
+    function loadGroupEditingDraft(entry, selectedIndex) {
+      const currentList = selectedIndex === null ? pendingNewGroupList : entry.groupLists[selectedIndex];
+      entry.selectedGroupListIndex = selectedIndex;
+      groupListEditState = {
+        selectedIndex,
+        draftName: currentList?.name ?? "",
+        draftGroups: deepCopy(getSelectedGroupTree(entry, selectedIndex))
+      };
+      deletingGroupPath = null;
+      deletingGroupList = false;
+    }
+
+    /**
+     * 保存当前分组列表的名称和树草稿。
+     */
+    function saveGroupListDraft(entry) {
+      if (!groupListEditState || Object.keys(groupListEditState.draftGroups).length === 0) {
+        setResult("空白列表无法保存");
+        return false;
+      }
+
+      const listName = groupListEditState.draftName.trim();
+      if (!listName) {
+        setResult("请输入列表名称");
+        return false;
+      }
+
+      const sameNameIndex = entry.groupLists.findIndex(list => list.name === listName);
+      if (sameNameIndex !== -1 && sameNameIndex !== groupListEditState.selectedIndex) {
+        setResult("列表名称已存在");
+        return false;
+      }
+
+      if (groupListEditState.selectedIndex === null) {
+        entry.groupLists.push({
+          name: listName,
+          groups: deepCopy(groupListEditState.draftGroups)
+        });
+        entry.selectedGroupListIndex = entry.groupLists.length - 1;
+        pendingNewGroupList = null;
+      } else {
+        const currentList = entry.groupLists[groupListEditState.selectedIndex];
+        if (!currentList) return false;
+        currentList.name = listName;
+        currentList.groups = deepCopy(groupListEditState.draftGroups);
+      }
+
+      saveToStorage();
+      return true;
+    }
+
+    /**
+     * 删除当前分组列表；未保存的新建预览只会被丢弃。
+     */
+    function deleteCurrentGroupList(entry) {
+      const selectedIndex = groupListEditState?.selectedIndex;
+
+      if (selectedIndex === null) {
+        pendingNewGroupList = null;
+        entry.selectedGroupListIndex = 0;
+      } else if (entry.groupLists[selectedIndex]) {
+        entry.groupLists.splice(selectedIndex, 1);
+        if (entry.groupLists.length === 0) {
+          entry.groupLists.push(createDefaultGroupList());
+        }
+        entry.selectedGroupListIndex = Math.min(selectedIndex, entry.groupLists.length - 1);
+        pendingNewGroupList = null;
+        saveToStorage();
+      }
+
+      isEditingMode = false;
+      editingBackup = null;
+      groupListEditState = null;
+      deletingGroupPath = null;
+      deletingGroupList = false;
+      render();
+    }
+
+    /**
+     * 绑定普通模式下的分组列表选择器。
+     */
+    function setupGroupListSelector(entry) {
+      const selector = document.getElementById("groupListSelector");
+      if (!selector) return;
+
+      selector.addEventListener("change", () => {
+        const nextSelection = parseListSelection(selector.value);
+        if (nextSelection === null) {
+          pendingNewGroupList = createDefaultGroupListDraft(entry);
+          entry.selectedGroupListIndex = null;
+          renderGroupsPanel(entry);
+          return;
+        }
+
+        pendingNewGroupList = null;
+        entry.selectedGroupListIndex = nextSelection;
+        saveToStorage();
+        renderGroupsPanel(entry);
+      });
+    }
+
+    /**
+     * 渲染分组编辑模式。
+     */
+    function renderGroupsEditingMode(entry) {
+      panelBody.innerHTML = `
+        ${renderResultBox()}
+        <div class="toolbar">
+          <button class="primary" id="saveGroupBtn">保存</button>
+          <button class="primary" style="background: #dc2626;" id="cancelGroupBtn">取消</button>
+          <button class="primary list-delete${deletingGroupList ? " confirming" : ""}" id="deleteGroupListBtn">
+            ${deletingGroupList ? "确认删除列表" : "删除列表"}
+          </button>
+          <label class="list-name-editor">
+            列表名称：
+            <input type="text" id="groupListNameInput" value="${escapeHtml(groupListEditState.draftName)}" placeholder="请输入列表名称" />
+          </label>
+        </div>
+        <div class="group-tree" id="groupTree"></div>
+        <button class="primary group-add-item" id="addGroupBtn">+ 添加项目</button>
+      `;
+
+      renderGroupEditTree(getEditingGroupTree(), "groupTree", entry);
+
+      document.getElementById("groupListNameInput").addEventListener("input", (event) => {
+        groupListEditState.draftName = event.target.value;
+      });
+
+      document.getElementById("deleteGroupListBtn").addEventListener("click", () => {
+        if (!deletingGroupList) {
+          deletingGroupList = true;
+          renderGroupsEditingMode(entry);
+          return;
+        }
+
+        deleteCurrentGroupList(entry);
+      });
+
+      // 添加一级分组
+      document.getElementById("addGroupBtn").addEventListener("click", () => {
+        const groups = getEditingGroupTree();
+        let newName = "新项目";
+        let counter = 1;
+        while (newName in groups) {
+          newName = `新项目${counter}`;
+          counter++;
+        }
+        groups[newName] = {};
+        deletingGroupPath = null;
+        renderGroupsEditingMode(entry);
+      });
+
+      // 保存
+      document.getElementById("saveGroupBtn").addEventListener("click", () => {
+        if (!saveGroupListDraft(entry)) return;
+        isEditingMode = false;
+        editingBackup = null;
+        groupListEditState = null;
+        deletingGroupPath = null;
+        deletingGroupList = false;
+        render();
+      });
+
+      // 取消
+      document.getElementById("cancelGroupBtn").addEventListener("click", () => {
+        isEditingMode = false;
+        editingBackup = null;
+        groupListEditState = null;
+        deletingGroupPath = null;
+        deletingGroupList = false;
+        render();
+      });
+
+      setResult("编辑中...");
+    }
+
+    /**
      * 生成闭区间随机整数。
      * @param {number} min 最小值
      * @param {number} max 最大值
@@ -420,6 +1787,209 @@
      */
     function randomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    /**
+     * 读取输入文本中的小数位数。
+     * @param {string} value 输入文本
+     * @returns {number} 小数位数
+     */
+    function getDecimalPlaces(value) {
+      const text = String(value).trim();
+      const match = text.match(/^-?(?:\d+)?\.(\d+)$/);
+      return match ? match[1].length : 0;
+    }
+
+    /**
+     * 判断输入是否为普通十进制数字文本。
+     * @param {string} value 输入文本
+     * @returns {boolean} 是否有效
+     */
+    function isPlainNumberText(value) {
+      return /^-?(?:\d+\.?\d*|\.\d+)$/.test(String(value).trim());
+    }
+
+    /**
+     * 标准化单个数字范围。
+     * @param {*} range 待读取的范围
+     * @param {{min: string, max: string}} fallback 备用范围
+     * @returns {{min: string, max: string}} 数字范围
+     */
+    function normalizeNumberRange(range, fallback) {
+      const min = String(range?.min ?? fallback.min).trim();
+      const max = String(range?.max ?? fallback.max).trim();
+
+      if (isPlainNumberText(min) && isPlainNumberText(max)) {
+        return { min, max };
+      }
+
+      return { ...fallback };
+    }
+
+    /**
+     * 判断是否为旧版本空数字框保存出的异常零范围。
+     * @param {{min: string, max: string}} range 数字范围
+     * @returns {boolean} 是否为异常零范围
+     */
+    function isStaleZeroNumberRange(range) {
+      return Number(range.min) === 0
+        && Number(range.max) === 0
+        && (getDecimalPlaces(range.min) > 0 || getDecimalPlaces(range.max) > 0);
+    }
+
+    /**
+     * 标准化数字抽取模式的数据，恢复单个当前缓存与手动保存列表。
+     * @param {Object} entry 默认数字抽取数据
+     * @param {Object} savedEntry 本地保存的数据
+     */
+    function normalizeNumberEntry(entry, savedEntry = {}) {
+      const defaultRange = normalizeNumberRange(
+        { min: entry.min, max: entry.max },
+        { min: "0", max: "100" }
+      );
+      const savedCurrentRange = normalizeNumberRange(
+        { min: savedEntry.min, max: savedEntry.max },
+        defaultRange
+      );
+      const shouldRecoverDefaultRange = isStaleZeroNumberRange(savedCurrentRange);
+      const currentRange = shouldRecoverDefaultRange ? defaultRange : savedCurrentRange;
+      const savedRanges = Array.isArray(savedEntry.ranges) ? savedEntry.ranges : [];
+      const ranges = savedRanges
+        .map(range => normalizeNumberRange(range, defaultRange))
+        .filter(range => !isStaleZeroNumberRange(range))
+        .filter((range, index, array) =>
+          array.findIndex(item => item.min === range.min && item.max === range.max) === index
+        );
+
+      entry.ranges = ranges;
+      entry.min = currentRange.min;
+      entry.max = currentRange.max;
+    }
+
+    /**
+     * 按指定小数位数生成闭区间随机数。
+     * @param {number} min 最小值
+     * @param {number} max 最大值
+     * @param {number} decimalPlaces 小数位数
+     * @returns {string} 随机数文本，保留指定小数位
+     */
+    function randomNumberInRange(min, max, decimalPlaces) {
+      if (decimalPlaces === 0) {
+        return String(randomInt(min, max));
+      }
+
+      const scale = 10 ** decimalPlaces;
+      const scaledMin = Math.round(min * scale);
+      const scaledMax = Math.round(max * scale);
+      const result = randomInt(scaledMin, scaledMax) / scale;
+      return result.toFixed(decimalPlaces);
+    }
+
+    /**
+     * 根据小数位数生成数字输入框步长。
+     * @param {number} decimalPlaces 小数位数
+     * @returns {string} input step 属性值
+     */
+    function getNumberStep(decimalPlaces) {
+      return decimalPlaces === 0 ? "1" : (1 / (10 ** decimalPlaces)).toFixed(decimalPlaces);
+    }
+
+    /**
+     * 读取两个数字输入框当前最多的小数位数。
+     * @returns {number} 小数位数
+     */
+    function getNumberInputsDecimalPlaces() {
+      const minInput = document.getElementById("minNumber");
+      const maxInput = document.getElementById("maxNumber");
+      if (!minInput || !maxInput) return 0;
+
+      return Math.min(
+        10,
+        Math.max(getDecimalPlaces(minInput.value), getDecimalPlaces(maxInput.value))
+      );
+    }
+
+    /**
+     * 根据当前精度同步两个数字框的上下箭头步长。
+     * @param {number} decimalPlaces 小数位数
+     */
+    function updateNumberInputSteps(decimalPlaces) {
+      const minInput = document.getElementById("minNumber");
+      const maxInput = document.getElementById("maxNumber");
+      if (!minInput || !maxInput) return;
+
+      const step = getNumberStep(decimalPlaces);
+      minInput.step = step;
+      maxInput.step = step;
+    }
+
+    /**
+     * 按当前精度统一两个数字输入框的显示。
+     * @param {number} decimalPlaces 小数位数
+     */
+    function formatNumberInputs(decimalPlaces) {
+      const minInput = document.getElementById("minNumber");
+      const maxInput = document.getElementById("maxNumber");
+      if (!minInput || !maxInput) return;
+
+      [minInput, maxInput].forEach(input => {
+        const value = Number(input.value.trim());
+        if (!isPlainNumberText(input.value) || !Number.isFinite(value)) return;
+        input.value = decimalPlaces === 0 ? String(value) : value.toFixed(decimalPlaces);
+      });
+    }
+
+    /**
+     * 按当前精度让一个数字输入框加减一步。
+     * @param {HTMLInputElement} input 数字输入框
+     * @param {number} direction 方向，1 为增加，-1 为减少
+     * @param {number} decimalPlaces 当前小数位数
+     */
+    function stepNumberInput(input, direction, decimalPlaces) {
+      const value = Number(input.value.trim());
+      if (!isPlainNumberText(input.value) || !Number.isFinite(value)) return;
+
+      const scale = 10 ** decimalPlaces;
+      const nextScaledValue = Math.round(value * scale) + direction;
+      const nextValue = nextScaledValue / scale;
+      input.value = decimalPlaces === 0 ? String(nextValue) : nextValue.toFixed(decimalPlaces);
+    }
+
+    /**
+     * 从数字范围输入框读取并校验抽取参数。
+     * @param {number} decimalPlaces 当前小数位数
+     * @returns {{min: number, max: number, decimalPlaces: number, minText: string, maxText: string}|null}
+     */
+    function getNumberRange(decimalPlaces) {
+      const minInput = document.getElementById("minNumber");
+      const maxInput = document.getElementById("maxNumber");
+      const minText = minInput.value.trim();
+      const maxText = maxInput.value.trim();
+      const min = Number(minText);
+      const max = Number(maxText);
+
+      if (!isPlainNumberText(minText) || !isPlainNumberText(maxText) || !Number.isFinite(min) || !Number.isFinite(max)) {
+        return null;
+      }
+
+      return {
+        min,
+        max,
+        minText,
+        maxText,
+        decimalPlaces
+      };
+    }
+
+    /**
+     * 覆盖数字范围的唯一当前缓存。
+     * @param {Object} entry 当前数字抽取模式数据
+     * @param {{minText: string, maxText: string}} range 数字范围参数
+     */
+    function saveNumberRange(entry, range) {
+      entry.min = range.minText;
+      entry.max = range.maxText;
+      saveToStorage();
     }
 
     /**
@@ -449,26 +2019,31 @@
     /**
      * 递归渲染分组结构，支持多层嵌套。
      * @param {string} groupName 分组名称
-     * @param {*} groupData 分组数据（数组或对象）
+     * @param {Object} groupData 分组数据
      * @param {number} depth 当前深度
      * @returns {string} HTML字符串
      */
     function renderGroup(groupName, groupData, depth = 0) {
-      if (Array.isArray(groupData)) {
-        // 渲染项目列表
-        return `
-          <div class="section-gap" style="margin-left: ${depth * 16}px;">
-            <div class="small-title">${escapeHtml(groupName)} <span style="color: var(--muted); font-weight: 400;">(${groupData.length} 项)</span></div>
-            <div class="items">
-              ${groupData.map(item => `<div class="item">${escapeHtml(item)}</div>`).join("")}
+      const indent = depth === 0 ? 0 : 16;
+
+      if (typeof groupData === 'object' && groupData !== null) {
+        const entries = Object.entries(groupData);
+        // 如果对象为空，也按标题样式显示，保持末级项目与分组标题一致。
+        if (entries.length === 0) {
+          return `
+            <div class="section-gap" style="margin: 8px 0 8px ${indent}px; border: 2px solid #38bdf8; border-radius: 8px; padding: 12px; background: #f0f9ff;">
+              <div class="small-title" style="font-weight: 400; margin-bottom: 0;">${escapeHtml(groupName)}</div>
             </div>
-          </div>
-        `;
-      } else if (typeof groupData === 'object' && groupData !== null) {
+          `;
+        }
+        const borderColors = ['#2563eb', '#0891b2'];
+        const bgColors = ['#eff6ff', '#ecfeff'];
+        const borderColor = borderColors[depth % borderColors.length];
+        const bgColor = bgColors[depth % bgColors.length];
         // 递归渲染子分组
-        const subHtml = Object.entries(groupData).map(([subName, subData]) => renderGroup(subName, subData, depth + 1)).join("");
+        const subHtml = entries.map(([subName, subData]) => renderGroup(subName, subData, depth + 1)).join("");
         return `
-          <div class="section-gap" style="margin-left: ${depth * 16}px;">
+          <div class="section-gap" style="margin-left: ${indent}px; border: 2px solid ${borderColor}; border-radius: 8px; padding: 12px; background: ${bgColor};">
             <div class="small-title">${escapeHtml(groupName)}</div>
             ${subHtml}
           </div>
@@ -483,10 +2058,7 @@
      * @returns {string} 选择结果或路径
      */
     function pickFromNestedGroup(groupData) {
-      if (Array.isArray(groupData)) {
-        // 直接从数组中选择
-        return pickOne(groupData);
-      } else if (typeof groupData === 'object' && groupData !== null) {
+      if (typeof groupData === 'object' && groupData !== null) {
         // 从对象的键中随机选择一个
         const keys = Object.keys(groupData);
         if (keys.length === 0) return null;
@@ -540,13 +2112,174 @@
       if (resultValue) resultValue.textContent = value;
     }
 
+    const NEW_LIST_OPTION = "new";
+
+    /**
+     * 读取当前选择的列表内容；“新建列表”显示未保存草稿的默认内容。
+     */
+    function getSelectedListItems(entry, selectedIndex = entry.selectedListIndex) {
+      if (selectedIndex === null) {
+        return pendingNewList?.items ?? [];
+      }
+
+      return entry.lists[selectedIndex]?.items ?? [];
+    }
+
+    /**
+     * 渲染列表选择器，“新建列表”创建动作固定放在末尾。
+     */
+    function renderListSelector(entry, selectedIndex) {
+      const selectedValue = selectedIndex === null ? NEW_LIST_OPTION : String(selectedIndex);
+      const savedOptions = entry.lists.map((list, index) => `
+        <option value="${index}"${selectedValue === String(index) ? " selected" : ""}>${escapeHtml(list.name)}</option>
+      `).join("");
+
+      return `
+        <label class="list-selector">
+          列表：
+          <select id="listSelector">
+            ${savedOptions}
+            <option value="${NEW_LIST_OPTION}"${selectedValue === NEW_LIST_OPTION ? " selected" : ""}>+ 新建列表</option>
+          </select>
+        </label>
+      `;
+    }
+
+    /**
+     * 将选择器的值转为列表索引，null 表示执行新建动作。
+     */
+    function parseListSelection(value) {
+      if (value === NEW_LIST_OPTION) return null;
+
+      const index = Number(value);
+      return Number.isInteger(index) ? index : null;
+    }
+
+    /**
+     * 创建尚未保存、带默认内容的新列表草稿。
+     */
+    function createDefaultListDraft(entry) {
+      let number = 1;
+      while (entry.lists.some(list => list.name === `列表 ${number}`)) {
+        number++;
+      }
+
+      return {
+        name: `列表 ${number}`,
+        items: ["是", "否"]
+      };
+    }
+
+    /**
+     * 为当前列表载入编辑草稿。
+     */
+    function loadListEditingDraft(entry, selectedIndex) {
+      const sourceItems = getSelectedListItems(entry, selectedIndex);
+      const currentList = selectedIndex === null ? pendingNewList : entry.lists[selectedIndex];
+      entry.selectedListIndex = selectedIndex;
+      listEditState = {
+        selectedIndex,
+        draftName: currentList?.name ?? "",
+        draftItems: [...sourceItems]
+      };
+      deletingListItemIndex = null;
+    }
+
+    /**
+     * 保存当前列表的名称和项目草稿。
+     */
+    function saveListDraft(entry) {
+      if (!listEditState || listEditState.draftItems.length === 0) {
+        setResult("空白列表无法保存");
+        return false;
+      }
+
+      const listName = listEditState.draftName.trim();
+      if (!listName) {
+        setResult("请输入列表名称");
+        return false;
+      }
+
+      const sameNameIndex = entry.lists.findIndex(list => list.name === listName);
+      if (sameNameIndex !== -1 && sameNameIndex !== listEditState.selectedIndex) {
+        setResult("列表名称已存在");
+        return false;
+      }
+
+      const currentList = entry.lists[listEditState.selectedIndex];
+      if (listEditState.selectedIndex === null) {
+        entry.lists.push({
+          name: listName,
+          items: [...listEditState.draftItems]
+        });
+        entry.selectedListIndex = entry.lists.length - 1;
+        pendingNewList = null;
+      } else {
+        currentList.name = listName;
+        currentList.items = [...listEditState.draftItems];
+      }
+
+      saveToStorage();
+      return true;
+    }
+
+    /**
+     * 删除当前列表；未保存的新建预览只会被丢弃。
+     */
+    function deleteCurrentList(entry) {
+      const selectedIndex = listEditState?.selectedIndex;
+
+      if (selectedIndex === null) {
+        pendingNewList = null;
+        entry.selectedListIndex = 0;
+      } else if (entry.lists[selectedIndex]) {
+        entry.lists.splice(selectedIndex, 1);
+        if (entry.lists.length === 0) {
+          entry.lists.push({ name: "列表 1", items: ["是", "否"] });
+        }
+        entry.selectedListIndex = Math.min(selectedIndex, entry.lists.length - 1);
+        pendingNewList = null;
+        saveToStorage();
+      }
+
+      isEditingMode = false;
+      editingBackup = null;
+      listEditState = null;
+      deletingListItemIndex = null;
+      deletingList = false;
+      render();
+    }
+
+    /**
+     * 绑定普通模式下的列表选择器。
+     */
+    function setupListSelector(entry) {
+      const selector = document.getElementById("listSelector");
+      if (!selector) return;
+
+      selector.addEventListener("change", () => {
+        const nextSelection = parseListSelection(selector.value);
+        if (nextSelection === null) {
+          pendingNewList = createDefaultListDraft(entry);
+          entry.selectedListIndex = null;
+          renderListPanel(entry);
+          return;
+        }
+
+        pendingNewList = null;
+        entry.selectedListIndex = nextSelection;
+        saveToStorage();
+        renderListPanel(entry);
+      });
+    }
+
     /**
      * 设置拖动功能
      */
-    function setupDragAndDrop() {
+    function setupDragAndDrop(entry) {
       const itemsContainer = document.querySelector(".items");
       if (!itemsContainer) return;
-      
+
       const items = itemsContainer.querySelectorAll(".item.editable");
       let draggingItem = null;
       let draggingItemIndex = -1;
@@ -566,15 +2299,15 @@
 
             const container = document.querySelector(".items");
             if (!container) return;
-            
+
             const allItems = Array.from(container.querySelectorAll(".item.editable"));
-            
+
             allItems.forEach((otherItem, idx) => {
               if (otherItem === draggingItem) return;
-              
+
               const otherRect = otherItem.getBoundingClientRect();
               const midpoint = otherRect.top + otherRect.height / 2;
-              
+
               // 根据鼠标位置显示插入位置提示
               if (moveEvent.clientY < midpoint) {
                 otherItem.classList.add("drag-over");
@@ -597,7 +2330,7 @@
             }
 
             const allItems = Array.from(container.querySelectorAll(".item.editable"));
-            
+
             // 找到放置位置：基于 drag-over 标记的元素
             let targetIndex = -1;
             for (let i = 0; i < allItems.length; i++) {
@@ -618,19 +2351,19 @@
 
             // 执行插入操作而不是交换
             if (targetIndex !== draggingItemIndex && targetIndex !== draggingItemIndex + 1) {
-              const entry = DATA[currentIndex];
-              if (entry && entry.items) {
+              if (listEditState) {
                 // 删除原来的项
-                const [item] = entry.items.splice(draggingItemIndex, 1);
-                
+                const [item] = listEditState.draftItems.splice(draggingItemIndex, 1);
+
                 // 计算新的插入位置（因为已经删除了一个元素）
                 let insertIndex = targetIndex;
                 if (targetIndex > draggingItemIndex) {
                   insertIndex = targetIndex - 1;
                 }
-                
+
                 // 插入到新位置
-                entry.items.splice(insertIndex, 0, item);
+                listEditState.draftItems.splice(insertIndex, 0, item);
+                deletingListItemIndex = null;
                 renderEditingMode(entry);
               }
             }
@@ -652,13 +2385,15 @@
      */
     function renderEditingMode(entry) {
       const itemsContainer = document.querySelector(".items");
-      if (!itemsContainer) return;
+      if (!itemsContainer || !listEditState) return;
 
-      itemsContainer.innerHTML = entry.items.map((item, index) => `
+      itemsContainer.innerHTML = listEditState.draftItems.map((item, index) => `
         <div class="item editable">
           <div class="drag-handle">≡</div>
           <input type="text" class="item-input" value="${escapeHtml(item)}" data-index="${index}" />
-          <button class="delete-btn" data-index="${index}">×</button>
+          <button class="delete-btn${deletingListItemIndex === index ? " confirming" : ""}" data-index="${index}" title="删除">
+            ${deletingListItemIndex === index ? "确认删除" : "×"}
+          </button>
         </div>
       `).join("");
 
@@ -666,7 +2401,14 @@
       document.querySelectorAll(".delete-btn").forEach(btn => {
         btn.addEventListener("click", (e) => {
           const index = Number(e.target.dataset.index);
-          entry.items.splice(index, 1);
+          if (deletingListItemIndex !== index) {
+            deletingListItemIndex = index;
+            renderEditingMode(entry);
+            return;
+          }
+
+          listEditState.draftItems.splice(index, 1);
+          deletingListItemIndex = null;
           renderEditingMode(entry);
         });
       });
@@ -675,17 +2417,17 @@
       document.querySelectorAll(".item-input").forEach(input => {
         input.addEventListener("change", (e) => {
           const index = Number(e.target.dataset.index);
-          entry.items[index] = e.target.value || "未命名";
+          listEditState.draftItems[index] = e.target.value || "未命名";
         });
 
         input.addEventListener("input", (e) => {
           const index = Number(e.target.dataset.index);
-          entry.items[index] = e.target.value || "未命名";
+          listEditState.draftItems[index] = e.target.value || "未命名";
         });
       });
 
       // 设置拖动排序
-      setupDragAndDrop();
+      setupDragAndDrop(entry);
     }
 
     /**
@@ -699,34 +2441,59 @@
           <div class="toolbar">
             <button class="primary" id="saveBtn">保存</button>
             <button class="primary" style="background: #dc2626;" id="cancelBtn">取消</button>
-            <button class="primary" style="background: #16a34a;" id="addBtn">+ 添加项目</button>
+            <button class="primary list-delete${deletingList ? " confirming" : ""}" id="deleteListBtn">
+              ${deletingList ? "确认删除列表" : "删除列表"}
+            </button>
+            <label class="list-name-editor">
+              列表名称：
+              <input type="text" id="listNameInput" value="${escapeHtml(listEditState.draftName)}" placeholder="请输入列表名称" />
+            </label>
           </div>
           <div class="items"></div>
+          <button class="primary list-add-item" id="addBtn">+ 添加项目</button>
         `;
 
         renderEditingMode(entry);
 
+        document.getElementById("listNameInput").addEventListener("input", (event) => {
+          listEditState.draftName = event.target.value;
+        });
+
+        document.getElementById("deleteListBtn").addEventListener("click", () => {
+          if (!deletingList) {
+            deletingList = true;
+            renderListPanel(entry);
+            return;
+          }
+
+          deleteCurrentList(entry);
+        });
+
         // 添加项目
         document.getElementById("addBtn").addEventListener("click", () => {
-          entry.items.push("新项目");
+          listEditState.draftItems.push("新项目");
+          deletingListItemIndex = null;
           renderEditingMode(entry);
         });
 
         // 保存
         document.getElementById("saveBtn").addEventListener("click", () => {
+          if (!saveListDraft(entry)) return;
           isEditingMode = false;
           editingBackup = null;
-          saveToStorage();
+          listEditState = null;
+          deletingListItemIndex = null;
+          deletingList = false;
           render();
         });
 
         // 取消
         document.getElementById("cancelBtn").addEventListener("click", () => {
-          if (editingBackup) {
-            entry.items = [...editingBackup];
-          }
           isEditingMode = false;
           editingBackup = null;
+          listEditState = null;
+          deletingListItemIndex = null;
+          deletingList = false;
           render();
         });
 
@@ -738,20 +2505,25 @@
           <div class="toolbar">
             <button class="primary" id="drawListBtn">开始抽取</button>
             <button class="primary" style="background: #0891b2;" id="editBtn">编辑</button>
+            ${renderListSelector(entry, entry.selectedListIndex)}
           </div>
           <div class="items">
-            ${entry.items.map(item => `<div class="item">${escapeHtml(item)}</div>`).join("")}
+            ${getSelectedListItems(entry).map(item => `<div class="item">${escapeHtml(item)}</div>`).join("")}
           </div>
         `;
 
+        setupListSelector(entry);
+
         document.getElementById("drawListBtn").addEventListener("click", () => {
-          const item = pickOne(entry.items);
+          const item = pickOne(getSelectedListItems(entry));
           setResult(item ?? "当前列表为空");
         });
 
         document.getElementById("editBtn").addEventListener("click", () => {
           isEditingMode = true;
-          editingBackup = [...entry.items];
+          loadListEditingDraft(entry, entry.selectedListIndex);
+          deletingListItemIndex = null;
+          deletingList = false;
           renderPanel();
         });
       }
@@ -762,19 +2534,35 @@
      * @param {Object} entry 当前模式数据
      */
     function renderGroupsPanel(entry) {
-      const groupHtml = Object.entries(entry.groups).map(([groupName, groupData]) => renderGroup(groupName, groupData)).join("");
+      if (isEditingMode) {
+        renderGroupsEditingMode(entry);
+        return;
+      }
+
+      const selectedGroups = getSelectedGroupTree(entry);
+      const groupHtml = Object.entries(selectedGroups).map(([groupName, groupData]) => renderGroup(groupName, groupData)).join("");
 
       panelBody.innerHTML = `
         ${renderResultBox()}
         <div class="toolbar">
           <button class="primary" id="drawGroupBtn">开始抽取</button>
+          <button class="primary" style="background: #0891b2;" id="editGroupBtn">编辑</button>
+          ${renderGroupListSelector(entry)}
         </div>
         ${groupHtml}
       `;
 
+      setupGroupListSelector(entry);
+
       document.getElementById("drawGroupBtn").addEventListener("click", () => {
-        const result = pickFromNestedGroup(entry.groups);
+        const result = pickFromNestedGroup(getSelectedGroupTree(entry));
         setResult(result ?? "没有可抽取的内容");
+      });
+
+      document.getElementById("editGroupBtn").addEventListener("click", () => {
+        isEditingMode = true;
+        loadGroupEditingDraft(entry, entry.selectedGroupListIndex);
+        renderPanel();
       });
     }
 
@@ -783,33 +2571,219 @@
      * @param {Object} entry 当前模式数据
      */
     function renderNumberPanel(entry) {
+      let currentDecimalPlaces = Math.min(
+        10,
+        Math.max(getDecimalPlaces(entry.min), getDecimalPlaces(entry.max))
+      );
+      const currentStep = getNumberStep(currentDecimalPlaces);
+
       panelBody.innerHTML = `
         ${renderResultBox("抽取结果")}
-        <div class="toolbar">
-          <button class="primary" id="drawNumberBtn">开始抽取</button>
-        </div>
-        <div class="range-box">
-          <label>从 <input type="number" id="minNumber" value="${escapeHtml(entry.min)}" step="1" /></label>
-          <label>到 <input type="number" id="maxNumber" value="${escapeHtml(entry.max)}" step="1" /></label>
+        <div class="number-panel-grid">
+          <div class="number-main">
+            <div class="toolbar">
+              <button class="primary" id="drawNumberBtn">开始抽取</button>
+              <button class="primary" style="background: #16a34a;" id="saveNumberBtn">保存</button>
+            </div>
+            <div class="range-box">
+              <label>在 <input type="number" id="minNumber" value="${escapeHtml(entry.min)}" step="${currentStep}" /> 和 <input type="number" id="maxNumber" value="${escapeHtml(entry.max)}" step="${currentStep}" /> 之间</label>
+            </div>
+          </div>
+          <aside class="number-presets">
+            <div class="number-presets-title">列表</div>
+            <div class="number-preset-list" id="numberPresetList"></div>
+          </aside>
         </div>
       `;
 
-      document.getElementById("drawNumberBtn").addEventListener("click", () => {
-        const minInput = document.getElementById("minNumber");
-        const maxInput = document.getElementById("maxNumber");
-        let min = Number.parseInt(minInput.value, 10);
-        let max = Number.parseInt(maxInput.value, 10);
+      const minInput = document.getElementById("minNumber");
+      const maxInput = document.getElementById("maxNumber");
+      let isManualNumberEdit = false;
+      let isNumberStepChange = false;
+      let deletingRangeIndex = null;
 
-        if (Number.isNaN(min) || Number.isNaN(max)) {
-          setResult("请输入有效整数");
+      minInput.removeAttribute("value");
+      maxInput.removeAttribute("value");
+      minInput.value = entry.min;
+      maxInput.value = entry.max;
+      formatNumberInputs(currentDecimalPlaces);
+
+      function isCurrentRange(range) {
+        return range.min === entry.min && range.max === entry.max;
+      }
+
+      function renderNumberPresets() {
+        const presetList = document.getElementById("numberPresetList");
+        if (!presetList) return;
+
+        if (entry.ranges.length === 0) {
+          presetList.innerHTML = '<div class="number-empty">暂无保存的范围</div>';
           return;
         }
 
+        presetList.innerHTML = entry.ranges.map((range, index) => `
+          <div class="number-preset-row">
+            <button class="number-preset${isCurrentRange(range) ? " active" : ""}" data-index="${index}">
+              ${escapeHtml(range.min)} 至 ${escapeHtml(range.max)}
+            </button>
+            <button class="number-preset-delete${deletingRangeIndex === index ? " confirming" : ""}" data-index="${index}" title="删除">
+              ${deletingRangeIndex === index ? "确认删除" : "×"}
+            </button>
+          </div>
+        `).join("");
+
+        presetList.querySelectorAll(".number-preset").forEach(button => {
+          button.addEventListener("click", () => {
+            const range = entry.ranges[Number(button.dataset.index)];
+            if (!range) return;
+
+            deletingRangeIndex = null;
+            entry.min = range.min;
+            entry.max = range.max;
+            minInput.value = range.min;
+            maxInput.value = range.max;
+            currentDecimalPlaces = Math.min(
+              10,
+              Math.max(getDecimalPlaces(range.min), getDecimalPlaces(range.max))
+            );
+            updateNumberInputSteps(currentDecimalPlaces);
+            saveToStorage();
+            renderNumberPresets();
+          });
+        });
+
+        presetList.querySelectorAll(".number-preset-delete").forEach(button => {
+          button.addEventListener("click", () => {
+            const index = Number(button.dataset.index);
+            if (deletingRangeIndex !== index) {
+              deletingRangeIndex = index;
+              renderNumberPresets();
+              return;
+            }
+
+            entry.ranges.splice(index, 1);
+            deletingRangeIndex = null;
+            saveToStorage();
+            renderNumberPresets();
+          });
+        });
+      }
+
+      function markTypingNumber(event) {
+        if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+          isNumberStepChange = true;
+          isManualNumberEdit = false;
+          return;
+        }
+
+        if (event.key.length === 1 || event.key === "Backspace" || event.key === "Delete") {
+          isManualNumberEdit = true;
+        }
+      }
+
+      function markPointerStepChange(event) {
+        const rect = event.currentTarget.getBoundingClientRect();
+        if (event.clientX >= rect.right - 28) {
+          isNumberStepChange = true;
+          isManualNumberEdit = false;
+        }
+      }
+
+      function handleNumberInput() {
+        if (isNumberStepChange || !isManualNumberEdit) {
+          formatNumberInputs(currentDecimalPlaces);
+          requestAnimationFrame(() => {
+            formatNumberInputs(currentDecimalPlaces);
+          });
+          isNumberStepChange = false;
+        } else {
+          currentDecimalPlaces = getNumberInputsDecimalPlaces();
+          isManualNumberEdit = false;
+        }
+
+        updateNumberInputSteps(currentDecimalPlaces);
+        const range = getNumberRange(currentDecimalPlaces);
+        if (range) {
+          deletingRangeIndex = null;
+          saveNumberRange(entry, range);
+          renderNumberPresets();
+        }
+      }
+
+      function saveValidNumberRange() {
+        if (isNumberStepChange) {
+          formatNumberInputs(currentDecimalPlaces);
+          isNumberStepChange = false;
+        }
+
+        const range = getNumberRange(currentDecimalPlaces);
+        if (range) {
+          deletingRangeIndex = null;
+          saveNumberRange(entry, range);
+          renderNumberPresets();
+        }
+      }
+
+      updateNumberInputSteps(currentDecimalPlaces);
+      minInput.addEventListener("mousedown", markPointerStepChange);
+      maxInput.addEventListener("mousedown", markPointerStepChange);
+      minInput.addEventListener("keydown", markTypingNumber);
+      maxInput.addEventListener("keydown", markTypingNumber);
+      minInput.addEventListener("wheel", () => { isNumberStepChange = true; });
+      maxInput.addEventListener("wheel", () => { isNumberStepChange = true; });
+      minInput.addEventListener("paste", () => { isManualNumberEdit = true; });
+      maxInput.addEventListener("paste", () => { isManualNumberEdit = true; });
+      minInput.addEventListener("drop", () => { isManualNumberEdit = true; });
+      maxInput.addEventListener("drop", () => { isManualNumberEdit = true; });
+      minInput.addEventListener("input", handleNumberInput);
+      maxInput.addEventListener("input", handleNumberInput);
+      minInput.addEventListener("change", saveValidNumberRange);
+      maxInput.addEventListener("change", saveValidNumberRange);
+      renderNumberPresets();
+
+      document.getElementById("saveNumberBtn").addEventListener("click", () => {
+        formatNumberInputs(currentDecimalPlaces);
+        const range = getNumberRange(currentDecimalPlaces);
+        if (!range) {
+          setResult("请输入有效数字");
+          return;
+        }
+
+        saveNumberRange(entry, range);
+        deletingRangeIndex = null;
+        const alreadySaved = entry.ranges.some(savedRange =>
+          savedRange.min === range.minText && savedRange.max === range.maxText
+        );
+        if (!alreadySaved) {
+          entry.ranges.push({ min: range.minText, max: range.maxText });
+          saveToStorage();
+        }
+        renderNumberPresets();
+        setResult(alreadySaved ? "该范围已保存" : "范围已保存");
+      });
+
+      document.getElementById("drawNumberBtn").addEventListener("click", () => {
+        const range = getNumberRange(currentDecimalPlaces);
+
+        if (!range) {
+          setResult("请输入有效数字");
+          return;
+        }
+
+        formatNumberInputs(currentDecimalPlaces);
+        const formattedRange = getNumberRange(currentDecimalPlaces);
+        if (!formattedRange) {
+          setResult("请输入有效数字");
+          return;
+        }
+
+        saveNumberRange(entry, formattedRange);
+        let { min, max, decimalPlaces } = formattedRange;
         if (min > max) {
           [min, max] = [max, min];
         }
 
-        setResult(String(randomInt(min, max)));
+        setResult(randomNumberInRange(min, max, decimalPlaces));
       });
     }
 
