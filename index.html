@@ -464,7 +464,9 @@
       font-size: 18px;
       padding: 4px 6px;
       flex-shrink: 0;
+      touch-action: none;
       user-select: none;
+      -webkit-user-select: none;
     }
 
     .drag-handle:active {
@@ -823,7 +825,7 @@
       const sourceLists = Array.isArray(storedEntry?.lists)
         ? storedEntry.lists
         : [{
-            name: "列表 1",
+            name: "默认",
             items: Array.isArray(storedEntry?.items)
               ? storedEntry.items
               : (entry.lists[0]?.items ?? [])
@@ -835,7 +837,7 @@
       }));
 
       if (entry.lists.length === 0) {
-        entry.lists.push({ name: "列表 1", items: ["是", "否"] });
+        entry.lists.push({ name: "默认", items: ["是", "否"] });
       }
 
       const storedIndex = storedEntry?.selectedListIndex;
@@ -1229,6 +1231,8 @@
       const dragHandles = document.querySelectorAll(".group-node-header > .drag-handle");
       let draggedElement = null;
       let draggedPath = null;
+      let activeHandle = null;
+      let activePointerId = null;
       let currentDropInfo = null;
       let autoScrollFrame = null;
       let autoScrollSpeed = 0;
@@ -1243,8 +1247,8 @@
         updateDropMarkerFromPoint(lastClientX, lastClientY);
       }
 
-      function onDocumentMouseMove(e) {
-        if (!draggedPath) return;
+      function onDocumentPointerMove(e) {
+        if (!draggedPath || e.pointerId !== activePointerId) return;
         e.preventDefault();
         lastClientX = e.clientX;
         lastClientY = e.clientY;
@@ -1252,16 +1256,22 @@
         updateDropMarkerFromPoint(e.clientX, e.clientY);
       }
 
-      function onDocumentMouseUp(e) {
-        if (!draggedPath) return;
+      function onDocumentPointerUp(e) {
+        if (!draggedPath || e.pointerId !== activePointerId) return;
 
         const pathToMove = draggedPath;
         const dropInfo = currentDropInfo;
-        finishMouseDrag();
+        finishPointerDrag();
 
         if (dropInfo && moveGroupEntry(entry, pathToMove, dropInfo.destinationPath, dropInfo.insertIndex)) {
           deletingGroupPath = null;
           renderGroupsEditingMode(entry);
+        }
+      }
+
+      function onDocumentPointerCancel(e) {
+        if (e.pointerId === activePointerId) {
+          finishPointerDrag();
         }
       }
 
@@ -1302,10 +1312,15 @@
         markGroupDropPosition(currentDropInfo);
       }
 
-      function finishMouseDrag() {
+      function finishPointerDrag() {
         if (draggedElement) draggedElement.classList.remove("dragging");
+        if (activeHandle && activePointerId !== null && activeHandle.hasPointerCapture(activePointerId)) {
+          activeHandle.releasePointerCapture(activePointerId);
+        }
         draggedElement = null;
         draggedPath = null;
+        activeHandle = null;
+        activePointerId = null;
         currentDropInfo = null;
         autoScrollSpeed = 0;
         if (autoScrollFrame !== null) {
@@ -1313,28 +1328,34 @@
           autoScrollFrame = null;
         }
         window.removeEventListener("wheel", onDragWheel, true);
-        window.removeEventListener("mousemove", onDocumentMouseMove);
-        window.removeEventListener("mouseup", onDocumentMouseUp);
+        window.removeEventListener("pointermove", onDocumentPointerMove);
+        window.removeEventListener("pointerup", onDocumentPointerUp);
+        window.removeEventListener("pointercancel", onDocumentPointerCancel);
         document.body.style.userSelect = "";
         document.body.style.cursor = "";
         clearGroupDragMarkers();
       }
 
       dragHandles.forEach(handle => {
-        handle.addEventListener("mousedown", (e) => {
+        handle.addEventListener("pointerdown", (e) => {
+          if (e.pointerType === "mouse" && e.button !== 0) return;
           const node = handle.closest("[data-path]");
           if (!node) return;
 
           e.preventDefault();
           draggedElement = node;
           draggedPath = JSON.parse(node.dataset.path);
+          activeHandle = handle;
+          activePointerId = e.pointerId;
           lastClientX = e.clientX;
           lastClientY = e.clientY;
 
           node.classList.add("dragging");
+          handle.setPointerCapture(e.pointerId);
           window.addEventListener("wheel", onDragWheel, { passive: false, capture: true });
-          window.addEventListener("mousemove", onDocumentMouseMove);
-          window.addEventListener("mouseup", onDocumentMouseUp);
+          window.addEventListener("pointermove", onDocumentPointerMove, { passive: false });
+          window.addEventListener("pointerup", onDocumentPointerUp);
+          window.addEventListener("pointercancel", onDocumentPointerCancel);
           document.body.style.userSelect = "none";
           document.body.style.cursor = "grabbing";
           updateDropMarkerFromPoint(e.clientX, e.clientY);
@@ -1713,6 +1734,7 @@
         <div class="toolbar">
           <button class="primary" id="saveGroupBtn">保存</button>
           <button class="primary" style="background: #dc2626;" id="cancelGroupBtn">取消</button>
+          <button class="primary" id="importGroupListBtn">导入</button>
           <button class="primary list-delete${deletingGroupList ? " confirming" : ""}" id="deleteGroupListBtn">
             ${deletingGroupList ? "确认删除列表" : "删除列表"}
           </button>
@@ -1729,6 +1751,21 @@
 
       document.getElementById("groupListNameInput").addEventListener("input", (event) => {
         groupListEditState.draftName = event.target.value;
+      });
+
+      document.getElementById("importGroupListBtn").addEventListener("click", () => {
+        selectImportTextFile((text) => {
+          const imported = parseImportedText(text, "groups");
+          if (!imported) {
+            setResult("导入失败：分组列表 TXT 格式不正确");
+            return;
+          }
+
+          groupListEditState.draftGroups = imported.groups;
+          deletingGroupPath = null;
+          renderGroupsEditingMode(entry);
+          setResult("已导入内容，请点击保存");
+        });
       });
 
       document.getElementById("deleteGroupListBtn").addEventListener("click", () => {
@@ -2112,6 +2149,121 @@
       if (resultValue) resultValue.textContent = value;
     }
 
+    const TEXT_EXPORT_FORMAT = "random-selection-list-v1";
+
+    /**
+     * 生成适合作为下载文件名的列表名称。
+     */
+    function getTextFileName(name) {
+      const safeName = String(name || "列表").replace(/[\\/:*?"<>|]/g, "_").trim() || "列表";
+      return safeName.toLowerCase().endsWith(".txt") ? safeName : `${safeName}.txt`;
+    }
+
+    /**
+     * 下载 UTF-8 编码的 TXT 文件。
+     */
+    function downloadTextFile(name, content) {
+      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.href = url;
+      link.download = getTextFileName(name);
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    /**
+     * 以可校验的文本格式导出当前列表内容。
+     */
+    function serializeTextList(name, items) {
+      return JSON.stringify({
+        format: TEXT_EXPORT_FORMAT,
+        type: "list",
+        name,
+        items
+      }, null, 2);
+    }
+
+    /**
+     * 以可校验的文本格式导出当前分组树。
+     */
+    function serializeTextGroupList(name, groups) {
+      return JSON.stringify({
+        format: TEXT_EXPORT_FORMAT,
+        type: "groups",
+        name,
+        groups
+      }, null, 2);
+    }
+
+    /**
+     * 验证导入的分组树结构和最大层数。
+     */
+    function isValidImportedGroupTree(groups, depth = 0) {
+      if (!groups || typeof groups !== "object" || Array.isArray(groups) || depth > MAX_GROUP_DEPTH) {
+        return false;
+      }
+
+      return Object.entries(groups).every(([name, children]) =>
+        name.trim() !== ""
+        && name !== "__proto__"
+        && isValidImportedGroupTree(children, depth + 1)
+      );
+    }
+
+    /**
+     * 解析并校验导入 TXT 中的模式和内容结构。
+     */
+    function parseImportedText(text, expectedType) {
+      let data;
+      try {
+        data = JSON.parse(String(text).replace(/^\uFEFF/, ""));
+      } catch (e) {
+        return null;
+      }
+
+      if (!data || data.format !== TEXT_EXPORT_FORMAT || data.type !== expectedType) {
+        return null;
+      }
+
+      if (expectedType === "list") {
+        if (!Array.isArray(data.items) || data.items.length === 0
+            || !data.items.every(item => typeof item === "string" && item.trim() !== "")) {
+          return null;
+        }
+        return { items: [...data.items] };
+      }
+
+      if (!isValidImportedGroupTree(data.groups) || Object.keys(data.groups).length === 0) {
+        return null;
+      }
+      return { groups: deepCopy(data.groups) };
+    }
+
+    /**
+     * 打开 TXT 文件选择器并将读取到的文本交给回调。
+     */
+    function selectImportTextFile(onLoad) {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".txt,text/plain";
+      input.addEventListener("change", async () => {
+        const file = input.files?.[0];
+        if (!file) return;
+        if (!file.name.toLowerCase().endsWith(".txt")) {
+          setResult("导入失败：请选择 TXT 文件");
+          return;
+        }
+
+        try {
+          onLoad(await file.text());
+        } catch (e) {
+          setResult("导入失败：无法读取文件");
+        }
+      });
+      input.click();
+    }
+
     const NEW_LIST_OPTION = "new";
 
     /**
@@ -2235,7 +2387,7 @@
       } else if (entry.lists[selectedIndex]) {
         entry.lists.splice(selectedIndex, 1);
         if (entry.lists.length === 0) {
-          entry.lists.push({ name: "列表 1", items: ["是", "否"] });
+          entry.lists.push({ name: "默认", items: ["是", "否"] });
         }
         entry.selectedListIndex = Math.min(selectedIndex, entry.lists.length - 1);
         pendingNewList = null;
@@ -2283,99 +2435,145 @@
       const items = itemsContainer.querySelectorAll(".item.editable");
       let draggingItem = null;
       let draggingItemIndex = -1;
+      let activeHandle = null;
+      let activePointerId = null;
+      let targetIndex = -1;
+      let autoScrollFrame = null;
+      let autoScrollSpeed = 0;
+      let lastClientY = 0;
+
+      function getItems() {
+        return Array.from(itemsContainer.querySelectorAll(".item.editable"));
+      }
+
+      function clearDropMarker() {
+        getItems().forEach(item => item.classList.remove("drag-over"));
+      }
+
+      function updateDropMarker(clientY) {
+        clearDropMarker();
+        const allItems = getItems();
+        targetIndex = allItems.length;
+
+        for (let index = 0; index < allItems.length; index++) {
+          const item = allItems[index];
+          if (item === draggingItem) continue;
+
+          const rect = item.getBoundingClientRect();
+          if (clientY < rect.top + rect.height / 2) {
+            targetIndex = index;
+            item.classList.add("drag-over");
+            return;
+          }
+        }
+      }
+
+      function updateAutoScroll(clientY) {
+        const edgeSize = 80;
+        const maxSpeed = 18;
+
+        if (clientY < edgeSize) {
+          autoScrollSpeed = -maxSpeed * ((edgeSize - clientY) / edgeSize);
+        } else if (clientY > window.innerHeight - edgeSize) {
+          autoScrollSpeed = maxSpeed * ((clientY - (window.innerHeight - edgeSize)) / edgeSize);
+        } else {
+          autoScrollSpeed = 0;
+        }
+
+        if (autoScrollSpeed !== 0 && autoScrollFrame === null) {
+          autoScrollFrame = requestAnimationFrame(runAutoScroll);
+        }
+      }
+
+      function runAutoScroll() {
+        if (!draggingItem || autoScrollSpeed === 0) {
+          autoScrollFrame = null;
+          return;
+        }
+
+        window.scrollBy(0, autoScrollSpeed);
+        updateDropMarker(lastClientY);
+        autoScrollFrame = requestAnimationFrame(runAutoScroll);
+      }
+
+      function finishPointerDrag(shouldMove) {
+        const sourceIndex = draggingItemIndex;
+        const nextTargetIndex = targetIndex;
+
+        if (draggingItem) draggingItem.classList.remove("dragging");
+        if (activeHandle && activePointerId !== null && activeHandle.hasPointerCapture(activePointerId)) {
+          activeHandle.releasePointerCapture(activePointerId);
+        }
+        clearDropMarker();
+        draggingItem = null;
+        draggingItemIndex = -1;
+        activeHandle = null;
+        activePointerId = null;
+        targetIndex = -1;
+        autoScrollSpeed = 0;
+        if (autoScrollFrame !== null) {
+          cancelAnimationFrame(autoScrollFrame);
+          autoScrollFrame = null;
+        }
+        window.removeEventListener("pointermove", onDocumentPointerMove);
+        window.removeEventListener("pointerup", onDocumentPointerUp);
+        window.removeEventListener("pointercancel", onDocumentPointerCancel);
+        document.body.style.userSelect = "";
+        document.body.style.cursor = "";
+
+        if (!shouldMove || !listEditState
+            || nextTargetIndex === sourceIndex || nextTargetIndex === sourceIndex + 1) {
+          return;
+        }
+
+        const [movedItem] = listEditState.draftItems.splice(sourceIndex, 1);
+        const insertIndex = nextTargetIndex > sourceIndex ? nextTargetIndex - 1 : nextTargetIndex;
+        listEditState.draftItems.splice(insertIndex, 0, movedItem);
+        deletingListItemIndex = null;
+        renderEditingMode(entry);
+      }
+
+      function onDocumentPointerMove(event) {
+        if (!draggingItem || event.pointerId !== activePointerId) return;
+        event.preventDefault();
+        lastClientY = event.clientY;
+        updateAutoScroll(event.clientY);
+        updateDropMarker(event.clientY);
+      }
+
+      function onDocumentPointerUp(event) {
+        if (!draggingItem || event.pointerId !== activePointerId) return;
+        updateDropMarker(event.clientY);
+        finishPointerDrag(true);
+      }
+
+      function onDocumentPointerCancel(event) {
+        if (event.pointerId === activePointerId) {
+          finishPointerDrag(false);
+        }
+      }
 
       items.forEach((item, index) => {
         item.dataset.index = index;
         const dragHandle = item.querySelector(".drag-handle");
 
-        dragHandle.addEventListener("mousedown", (e) => {
-          e.preventDefault();
+        dragHandle.addEventListener("pointerdown", event => {
+          if (event.pointerType === "mouse" && event.button !== 0) return;
+
+          event.preventDefault();
           draggingItem = item;
           draggingItemIndex = index;
+          activeHandle = dragHandle;
+          activePointerId = event.pointerId;
+          lastClientY = event.clientY;
           item.classList.add("dragging");
-
-          function onMouseMove(moveEvent) {
-            if (!draggingItem) return;
-
-            const container = document.querySelector(".items");
-            if (!container) return;
-
-            const allItems = Array.from(container.querySelectorAll(".item.editable"));
-
-            allItems.forEach((otherItem, idx) => {
-              if (otherItem === draggingItem) return;
-
-              const otherRect = otherItem.getBoundingClientRect();
-              const midpoint = otherRect.top + otherRect.height / 2;
-
-              // 根据鼠标位置显示插入位置提示
-              if (moveEvent.clientY < midpoint) {
-                otherItem.classList.add("drag-over");
-              } else {
-                otherItem.classList.remove("drag-over");
-              }
-            });
-          }
-
-          function onMouseUp(upEvent) {
-            if (!draggingItem || draggingItemIndex === -1) return;
-
-            const container = document.querySelector(".items");
-            if (!container) {
-              draggingItem.classList.remove("dragging");
-              draggingItem = null;
-              document.removeEventListener("mousemove", onMouseMove);
-              document.removeEventListener("mouseup", onMouseUp);
-              return;
-            }
-
-            const allItems = Array.from(container.querySelectorAll(".item.editable"));
-
-            // 找到放置位置：基于 drag-over 标记的元素
-            let targetIndex = -1;
-            for (let i = 0; i < allItems.length; i++) {
-              if (allItems[i].classList.contains("drag-over")) {
-                targetIndex = i;
-                break;
-              }
-            }
-
-            // 如果没找到 drag-over，说明拖到了底部，用最后一个后面的位置
-            if (targetIndex === -1) {
-              targetIndex = allItems.length;
-            }
-
-            // 清除样式
-            draggingItem.classList.remove("dragging");
-            allItems.forEach(item => item.classList.remove("drag-over"));
-
-            // 执行插入操作而不是交换
-            if (targetIndex !== draggingItemIndex && targetIndex !== draggingItemIndex + 1) {
-              if (listEditState) {
-                // 删除原来的项
-                const [item] = listEditState.draftItems.splice(draggingItemIndex, 1);
-
-                // 计算新的插入位置（因为已经删除了一个元素）
-                let insertIndex = targetIndex;
-                if (targetIndex > draggingItemIndex) {
-                  insertIndex = targetIndex - 1;
-                }
-
-                // 插入到新位置
-                listEditState.draftItems.splice(insertIndex, 0, item);
-                deletingListItemIndex = null;
-                renderEditingMode(entry);
-              }
-            }
-
-            draggingItem = null;
-            draggingItemIndex = -1;
-            document.removeEventListener("mousemove", onMouseMove);
-            document.removeEventListener("mouseup", onMouseUp);
-          }
-
-          document.addEventListener("mousemove", onMouseMove);
-          document.addEventListener("mouseup", onMouseUp);
+          dragHandle.setPointerCapture(event.pointerId);
+          window.addEventListener("pointermove", onDocumentPointerMove, { passive: false });
+          window.addEventListener("pointerup", onDocumentPointerUp);
+          window.addEventListener("pointercancel", onDocumentPointerCancel);
+          document.body.style.userSelect = "none";
+          document.body.style.cursor = "grabbing";
+          updateDropMarker(event.clientY);
         });
       });
     }
@@ -2441,6 +2639,7 @@
           <div class="toolbar">
             <button class="primary" id="saveBtn">保存</button>
             <button class="primary" style="background: #dc2626;" id="cancelBtn">取消</button>
+            <button class="primary" id="importListBtn">导入</button>
             <button class="primary list-delete${deletingList ? " confirming" : ""}" id="deleteListBtn">
               ${deletingList ? "确认删除列表" : "删除列表"}
             </button>
@@ -2457,6 +2656,21 @@
 
         document.getElementById("listNameInput").addEventListener("input", (event) => {
           listEditState.draftName = event.target.value;
+        });
+
+        document.getElementById("importListBtn").addEventListener("click", () => {
+          selectImportTextFile((text) => {
+            const imported = parseImportedText(text, "list");
+            if (!imported) {
+              setResult("导入失败：列表 TXT 格式不正确");
+              return;
+            }
+
+            listEditState.draftItems = imported.items;
+            deletingListItemIndex = null;
+            renderEditingMode(entry);
+            setResult("已导入内容，请点击保存");
+          });
         });
 
         document.getElementById("deleteListBtn").addEventListener("click", () => {
@@ -2505,6 +2719,7 @@
           <div class="toolbar">
             <button class="primary" id="drawListBtn">开始抽取</button>
             <button class="primary" style="background: #0891b2;" id="editBtn">编辑</button>
+            <button class="primary" id="exportListBtn">导出</button>
             ${renderListSelector(entry, entry.selectedListIndex)}
           </div>
           <div class="items">
@@ -2513,6 +2728,16 @@
         `;
 
         setupListSelector(entry);
+
+        document.getElementById("exportListBtn").addEventListener("click", () => {
+          const selectedList = entry.selectedListIndex === null
+            ? pendingNewList
+            : entry.lists[entry.selectedListIndex];
+          if (!selectedList) return;
+
+          downloadTextFile(selectedList.name, serializeTextList(selectedList.name, selectedList.items));
+          setResult("当前列表已导出");
+        });
 
         document.getElementById("drawListBtn").addEventListener("click", () => {
           const item = pickOne(getSelectedListItems(entry));
@@ -2547,12 +2772,23 @@
         <div class="toolbar">
           <button class="primary" id="drawGroupBtn">开始抽取</button>
           <button class="primary" style="background: #0891b2;" id="editGroupBtn">编辑</button>
+          <button class="primary" id="exportGroupListBtn">导出</button>
           ${renderGroupListSelector(entry)}
         </div>
         ${groupHtml}
       `;
 
       setupGroupListSelector(entry);
+
+      document.getElementById("exportGroupListBtn").addEventListener("click", () => {
+        const selectedList = entry.selectedGroupListIndex === null
+          ? pendingNewGroupList
+          : entry.groupLists[entry.selectedGroupListIndex];
+        if (!selectedList) return;
+
+        downloadTextFile(selectedList.name, serializeTextGroupList(selectedList.name, selectedList.groups));
+        setResult("当前列表已导出");
+      });
 
       document.getElementById("drawGroupBtn").addEventListener("click", () => {
         const result = pickFromNestedGroup(getSelectedGroupTree(entry));
@@ -2617,7 +2853,7 @@
         if (!presetList) return;
 
         if (entry.ranges.length === 0) {
-          presetList.innerHTML = '<div class="number-empty">暂无保存的范围</div>';
+          presetList.innerHTML = '<div class="number-empty">暂无保存的列表</div>';
           return;
         }
 
